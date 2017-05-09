@@ -17,7 +17,7 @@ public class MainActivity extends Activity{
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_teachlogin);
+        setContentView(R.layout.activity_main);
         //初始化视图
         btn_teach=(Button)findViewById(R.id.btn_teach);
         btn_seat=(Button)findViewById(R.id.btn_seat);
