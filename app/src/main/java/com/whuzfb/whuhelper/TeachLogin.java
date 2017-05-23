@@ -73,10 +73,7 @@ public class TeachLogin extends Activity {
         saveUpdateCookie();
         //为应用在SD卡创建目录/sdcard/WhuHelper
         createdirs();
-
-
         setListener();
-
     }
 
     private void setListener(){
