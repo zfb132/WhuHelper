@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -31,6 +32,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by zfb15 on 2017/5/9.
@@ -51,8 +54,12 @@ public class TeachLogin extends Activity {
     private String cookie="";
     private Map<String, String> cookies=new HashMap<>();
     private String token="";
-    private static String URL_CHECKCODE="http://210.42.121.241/servlet/GenImg";
-    private static String URL_LOGIN="http://210.42.121.241/servlet/Login";
+    private static final String URL_CHECKCODE="http://210.42.121.241/servlet/GenImg";
+    private static final String URL_LOGIN="http://210.42.121.241/servlet/Login";
+    private static final String REGEX_TOKEN="&csrftoken=([\\S]{36})";
+    private static final int NUM_CHECKCODE=1;
+    private static final int NUM_LOGIN=2;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,9 +103,10 @@ public class TeachLogin extends Activity {
             super.handleMessage(msg);
             Bundle data = msg.getData();
             String val = "";
+            int typeName=0;
             val=data.getString("value");
-            tv_result.setText(cookie+"\n"+val);
-            img_checkcode.setImageBitmap(bm_checkCode);
+            typeName=data.getInt("Type");
+            changeTextDisplay(typeName,val);
         }
     };
 
@@ -121,6 +129,7 @@ public class TeachLogin extends Activity {
                     e.printStackTrace();
                 }
                 data.putString("value","");
+                data.putInt("Type",NUM_CHECKCODE);
                 msg.setData(data);
                 handler.sendMessage(msg);
             }
@@ -130,12 +139,6 @@ public class TeachLogin extends Activity {
         @Override
         public void run() {
             //网络相关操作均使用Thread
-            // TODO: http request.
-            //获取，cooking和表单属性，下面map存放post时的数据
-            Map<String, String> post_params=new HashMap<>();
-            post_params.put("id",et_user.getText().toString());
-            post_params.put("pwd",getMd5Value(et_pwd.getText().toString()));
-            post_params.put("xdvfb",et_check.getText().toString());
             Connection.Response res=null;
             Message msg = new Message();
             Bundle data = new Bundle();
@@ -143,16 +146,59 @@ public class TeachLogin extends Activity {
                 Connection con=Jsoup.connect(URL_LOGIN);
                 con.header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
                 //设置cookie和post上面的map数据
-                res=con.ignoreContentType(true).method(Connection.Method.POST).data(post_params).cookies(cookies).execute();
+                res=con.ignoreContentType(true).method(Connection.Method.POST).data(setLoginParams()).cookies(cookies).execute();
                 data.putString("value",res.body());
+
+                //正则表达式匹配出csrftoken
+                token=findStringInText(res.body(),REGEX_TOKEN)[0];
+                Log.d("TTT",token);
             } catch (IOException e) {
                 data.putString("value","未获取到数据");
                 e.printStackTrace();
             }
+            data.putInt("Type",NUM_LOGIN);
             msg.setData(data);
             handler.sendMessage(msg);
         }
     };
+
+    public void changeTextDisplay(int num,String text){
+        switch (num){
+            case NUM_LOGIN:
+                if(text.contains("码错误"))
+                    tv_result.setText("用户名/密码/验证码错误！！！");
+                else
+                    tv_result.setText(cookie+"\n"+token+"\n"+text);
+                break;
+            case NUM_CHECKCODE:
+                tv_result.setText(cookie);
+                img_checkcode.setImageBitmap(bm_checkCode);break;
+        }
+    }
+
+    public Map<String,String> setLoginParams(){
+        //获取，cooking和表单属性，下面map存放post时的数据
+        Map<String, String> post_params=new HashMap<>();
+        post_params.put("id",et_user.getText().toString());
+        post_params.put("pwd",getMd5Value(et_pwd.getText().toString()));
+        post_params.put("xdvfb",et_check.getText().toString());
+        return post_params;
+    }
+
+    public String[] findStringInText(String text,String regex){
+        Pattern patternName = Pattern.compile(regex);
+        Matcher mName = patternName.matcher(text);
+        int matchNum=mName.groupCount();
+        if(!mName.find())
+            return new String[]{"error"};
+        String[] result=new String[matchNum];
+        while(mName.find()) {
+            for (int i = 1; i <= matchNum; i++) {
+                result[i - 1] = mName.group(i);
+            }
+        }
+        return result;
+    }
 
     private void saveUpdateCookie(){
         SharedPreferences setinfo=getPreferences(Activity.MODE_PRIVATE);
