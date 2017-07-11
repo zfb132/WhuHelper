@@ -130,13 +130,13 @@
                     android:textStyle="bold" />
 
                 <Button
-                    android:id="@+id/btn_sourcecode"
+                    android:id="@+id/btn_course"
                     style="?android:textAppearanceSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginLeft="20dp"
-                    android:text="源代码"
+                    android:text="课程表"
                     android:textStyle="bold" />
 
             </LinearLayout>
