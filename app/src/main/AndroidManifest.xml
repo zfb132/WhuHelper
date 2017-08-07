@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_SMS"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_whu"
@@ -30,6 +32,66 @@
         <activity
             android:name=".TeachLogin"
             android:label="@string/activity_name_teach"/>
+        <activity
+            android:name="sms.EditSms"
+            android:label="@string/activity_name_teach"/>
+
+
+        <!--
+        在Android 4.4上，只有一个应用能接收到新增的SMS_DELIVER_ACTION intent，这个intent是当系统接收到新短信时用来发送广播的。哪个应用接收这个广播取决于用户在系统设置里选择了哪个应用作为默认短信应用。同样的，也只有默认的短信应用能在系统接收到新彩信的时候接收到Android 4.4新增加的WAP_PUSH_DELIVER_ACTION intent;其他只想读取新信息的应用可以接收SMS_RECEIVED_ACTION广播，这个广播也是系统接收到新短信时发送的。但是只有接收到SMS_DELIVER_ACTION的应用(用户指定的默认短信应用)可以写入由android.provider.Telephony类和子类定义的SMS Provider
+
+        -->
+
+        <!-- BroadcastReceiver that listens for incoming SMS messages -->
+        <!-- 这让你的应用可以直接接收到进来的短信 -->
+        <receiver android:name="sms.SmsReceiver"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+            </intent-filter>
+        </receiver>
+
+        <!-- BroadcastReceiver that listens for incoming MMS messages -->
+        <!-- 这让你的应用可以直接接收到进来的彩信 -->
+        <receiver android:name="sms.MmsReceiver"
+            android:permission="android.permission.BROADCAST_WAP_PUSH">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
+                <data android:mimeType="application/vnd.wap.mms-message" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Activity that allows the user to send new SMS/MMS messages -->
+        <!-- 这让你的应用可以接收到其他想发送信息的应用请求的intent -->
+        <activity android:name="sms.ComposeSmsActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SENDTO" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </activity>
+
+        <!-- Service that delivers messages from the phone "quick response" -->
+        <!-- 这让用户在来电的时候用你的应用进行即时的短信息回复 -->
+        <service android:name="sms.HeadlessSmsSendService"
+            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="sms" />
+                <data android:scheme="smsto" />
+                <data android:scheme="mms" />
+                <data android:scheme="mmsto" />
+            </intent-filter>
+        </service>
+
+
     </application>
 
 </manifest>

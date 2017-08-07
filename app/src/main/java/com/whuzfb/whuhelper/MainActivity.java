@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.Button;
 
+import sms.EditSms;
+
 /**
  * Created by zfb15 on 2017/5/9.
  */
@@ -14,6 +16,7 @@ import android.widget.Button;
 public class MainActivity extends Activity{
     private Button btn_teach=null;
     private Button btn_seat=null;
+    private Button btn_sms=null;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +24,8 @@ public class MainActivity extends Activity{
         //初始化视图
         btn_teach=(Button)findViewById(R.id.btn_teach);
         btn_seat=(Button)findViewById(R.id.btn_seat);
+        btn_sms=(Button)findViewById(R.id.btn_sms);
+
 
         //为按钮绑定单击事件监听器
         btn_teach.setOnClickListener(new View.OnClickListener() {
@@ -28,6 +33,16 @@ public class MainActivity extends Activity{
             public void onClick(View v) {
                 Intent intent=new Intent();
                 intent.setClass(MainActivity.this,TeachLogin.class);
+                startActivity(intent);
+            }
+        });
+
+        //为按钮绑定单击事件监听器
+        btn_sms.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent();
+                intent.setClass(MainActivity.this, EditSms.class);
                 startActivity(intent);
             }
         });

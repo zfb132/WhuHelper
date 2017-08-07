@@ -16,5 +16,11 @@
 
     <string name="btn_teachmanage">登录教务管理系统</string>
     <string name="btn_seat">登录座位预约系统</string>
+    <string name="btn_sms">插入短信</string>
+    <string name="tv_from">发送者：</string>
+    <string name="tv_content">内容    ：</string>
+    <string name="edt_from_hint">输入号码</string>
+    <string name="btn_write">写入</string>
+    <string name="btn_recover">恢复默认短信应用</string>
     <string name="activity_name_teach">教务管理系统</string>
 </resources>
