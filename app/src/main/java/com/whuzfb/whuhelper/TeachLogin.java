@@ -116,7 +116,7 @@ public class TeachLogin extends Activity {
         btn_course.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(rb_getScore).start();
+                new Thread(rb_getCourse).start();
             }
         });
     }
@@ -172,6 +172,29 @@ public class TeachLogin extends Activity {
         post_params.put("learnType", "");
         post_params.put("scoreFlag", "");
         post_params.put("t", timestamp);
+        post_params.put("csrftoken",token);
+        /*
+        try {
+            post_params.put("term", URLEncoder.encode("下", "gb2312"));
+            Log.d("TAG",URLEncoder.encode("下", "gb2312"));
+            Log.d("TAG",URLEncoder.encode("下", "gbk"));
+        } catch (UnsupportedEncodingException e) {
+            post_params.put("term", "下");
+            showError(e.toString());
+        }
+        */
+        return post_params;
+    }
+
+    //设置获取课程的URL参数
+    public Map<String,String> setCourseParams(){
+        //获取，cooking和表单属性，下面map存放post时的数据
+        Map<String, String> post_params=new HashMap<>();
+        post_params.put("state","");
+        //post_params.put("term", "");
+        post_params.put("year", "2017");
+        post_params.put("action", "normalLsn");
+        //post_params.put("t", timestamp);
         post_params.put("csrftoken",token);
         /*
         try {
@@ -405,7 +428,7 @@ public class TeachLogin extends Activity {
 
 
 
-    /*
+
     Runnable rb_getCourse = new Runnable(){
         @Override
         public void run() {
@@ -419,7 +442,7 @@ public class TeachLogin extends Activity {
                 headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
                 headers.put("Content-Type","text/html;charset=gb2312");
                 headers.put("Host","210.42.121.241");
-                headers.put("Referer","http://210.42.121.241/stu/stu_course_parent.jsp");
+                //headers.put("Referer","http://210.42.121.241/stu/stu_course_parent.jsp");
                 con.headers(headers);
                 //设置cookie和post上面的map数据
                 res=con.method(Connection.Method.GET).data(setCourseParams()).cookies(cookies).execute();
@@ -433,6 +456,6 @@ public class TeachLogin extends Activity {
             handler.sendMessage(msg);
         }
     };
-    */
+
 
 }
