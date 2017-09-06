@@ -23,6 +23,8 @@ import android.widget.Toast;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -77,9 +79,16 @@ public class TeachLogin extends Activity {
     private static final String REGEX_TOKEN="&csrftoken=([\\S]{36})";
 
     //对应函数public void changeTextDisplay(int num,String text)
-    private static final int NUM_CHECKCODE=1;
-    private static final int NUM_LOGIN=2;
-    private static final int NUM_COURSE=3;
+    private static final int FLAG_CHECKCODE=1;
+    private static final int FLAG_LOGIN=2;
+    private static final int FLAG_COURSE=3;
+    private static final int NUM_INFOKIND=12;
+    //此处num_course是当前学年课程数+1（因为有一个表头）
+    private static int num_course=1;
+
+    private static String directory_root="/sdcard";
+
+    private static final String DIRECTORY="WhuHelper";
 
 
 
@@ -127,29 +136,35 @@ public class TeachLogin extends Activity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Bundle data = msg.getData();
-            String val = "";
+            String str = "";
             int typeName=0;
-            val=data.getString("value");
+            str=data.getString("value");
             typeName=data.getInt("Type");
-            changeTextDisplay(typeName,val);
+
+            if(typeName==FLAG_COURSE){
+                writeData(directory_root+File.separator+DIRECTORY+File.separator+"course.html",str);
+                str=getCourseInfo(str);
+            }
+            changeTextDisplay(typeName,str);
         }
     };
+
 
     //更新UI显示
     public void changeTextDisplay(int num,String text){
         switch (num){
-            case NUM_LOGIN:
+            case FLAG_LOGIN:
                 if(text.contains("码错误"))
                     tv_result.setText("用户名/密码/验证码错误！！！");
                 else
                     tv_result.setText(cookie+"\n"+token+"\n"+text);
                 break;
-            case NUM_CHECKCODE:
+            case FLAG_CHECKCODE:
                 tv_result.setText(cookie);
                 img_checkcode.setImageBitmap(bm_checkCode);
                 break;
-            case NUM_COURSE:
-                tv_result.setText("congratulations\n"+text);
+            case FLAG_COURSE:
+                tv_result.setText("成功获取到课程表数据！\n\n"+text);
         }
     }
 
@@ -163,7 +178,7 @@ public class TeachLogin extends Activity {
         return post_params;
     }
 
-    //设置获取课程的URL参数
+    //设置获取分数的URL参数
     public Map<String,String> setScoreParams(){
         //获取，cooking和表单属性，下面map存放post时的数据
         Map<String, String> post_params=new HashMap<>();
@@ -191,21 +206,9 @@ public class TeachLogin extends Activity {
         //获取，cooking和表单属性，下面map存放post时的数据
         Map<String, String> post_params=new HashMap<>();
         post_params.put("state","");
-        //post_params.put("term", "");
         post_params.put("year", "2017");
         post_params.put("action", "normalLsn");
-        //post_params.put("t", timestamp);
         post_params.put("csrftoken",token);
-        /*
-        try {
-            post_params.put("term", URLEncoder.encode("下", "gb2312"));
-            Log.d("TAG",URLEncoder.encode("下", "gb2312"));
-            Log.d("TAG",URLEncoder.encode("下", "gbk"));
-        } catch (UnsupportedEncodingException e) {
-            post_params.put("term", "下");
-            showError(e.toString());
-        }
-        */
         return post_params;
     }
 
@@ -313,15 +316,15 @@ public class TeachLogin extends Activity {
     //在存储器创建目录
     public void createdirs(){
         if (checkSDCard()) {
-            File recordPath = Environment.getExternalStorageDirectory();
-            File path = new File(recordPath.getPath() + File.separator + "WhuHelper");
+            directory_root=Environment.getExternalStorageDirectory().getPath();
+            File path = new File(directory_root + File.separator + DIRECTORY);
+            Log.d("PPPPPP",path.toString());
             if (!path.exists()) {
                 if (!path.mkdirs()) {
                     showError("创建目录失败，请检查权限！");
                     return;
                 }
             }
-            recordPath = path;
         } else {
             showError("SD卡未连接");
             return;
@@ -337,6 +340,59 @@ public class TeachLogin extends Activity {
         return false;
     }
 
+    //解析课程表的网页获取各科目详细信息
+    //TODO 将infoCourse的内容存储到数据库SQLite以备使用
+    public String getCourseInfo(String str){
+        Document doc= Jsoup.parse(str);
+        Elements trs=doc.getElementsByTag("tr");
+        num_course=trs.size();
+        Elements[] tr=new Elements[num_course];
+        String[][] infoCourse=new String[num_course][NUM_INFOKIND];
+        String[] columnNames=new String[NUM_INFOKIND];
+
+        Log.d("EEEEEE",trs.toString());
+        writeData(directory_root+File.separator+DIRECTORY+File.separator+"coursetrs.txt",trs.toString());
+        str="";
+        int i=0,t;
+        for(Element tr_temp:trs){
+            tr[i++]=tr_temp.children();
+            //str+=tr.toString();
+            Log.d("EEEWWW",tr.toString());
+        }
+        for(i=0;i<num_course;i++){
+            t=0;
+            if(i>1){
+                str+="\n********下一门课********\n";
+            }
+            for(Element td:tr[i]){
+                //i=0，即第一行数据，是课程表的每一列的列名
+                if(i==0){
+                    //由于列只有12行
+                    if(t<NUM_INFOKIND){
+                        infoCourse[0][t]=td.text();
+                        columnNames[t]=infoCourse[0][t];
+                        t++;
+                        continue;
+                    }else
+                        break;
+                }
+                //第10列数据就是上课时间地点安排，有子节点
+                if(t==9){
+                    Elements temp=td.children();
+                    for(Element td_note:temp){
+                        infoCourse[i][t]=td_note.text()+"\n";
+                    }
+                }else{
+                    infoCourse[i][t]=td.text()+"\n";
+                }
+                str=str+columnNames[t]+" : "+infoCourse[i][t];
+                Log.d("WWWWWW",infoCourse[i][t]);
+                t++;
+            }
+        }
+        return str;
+    }
+
 
     /*
     ***以下是网络相关操作
@@ -345,7 +401,6 @@ public class TeachLogin extends Activity {
         @Override
         public void run() {
             //网络相关操作均使用Thread
-            // TODO: http request.
             Connection.Response response=null;
             Message msg = new Message();
             Bundle data = new Bundle();
@@ -359,7 +414,7 @@ public class TeachLogin extends Activity {
                 e.printStackTrace();
             }
             data.putString("value","");
-            data.putInt("Type",NUM_CHECKCODE);
+            data.putInt("Type",FLAG_CHECKCODE);
             msg.setData(data);
             handler.sendMessage(msg);
         }
@@ -386,7 +441,7 @@ public class TeachLogin extends Activity {
                 data.putString("value","未获取到数据");
                 e.printStackTrace();
             }
-            data.putInt("Type",NUM_LOGIN);
+            data.putInt("Type",FLAG_LOGIN);
             msg.setData(data);
             handler.sendMessage(msg);
         }
@@ -420,7 +475,7 @@ public class TeachLogin extends Activity {
                 data.putString("value","未获取到数据");
                 e.printStackTrace();
             }
-            data.putInt("Type",NUM_COURSE);
+            data.putInt("Type",FLAG_COURSE);
             msg.setData(data);
             handler.sendMessage(msg);
         }
@@ -442,7 +497,6 @@ public class TeachLogin extends Activity {
                 headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
                 headers.put("Content-Type","text/html;charset=gb2312");
                 headers.put("Host","210.42.121.241");
-                //headers.put("Referer","http://210.42.121.241/stu/stu_course_parent.jsp");
                 con.headers(headers);
                 //设置cookie和post上面的map数据
                 res=con.method(Connection.Method.GET).data(setCourseParams()).cookies(cookies).execute();
@@ -451,7 +505,8 @@ public class TeachLogin extends Activity {
                 data.putString("value","未获取到数据");
                 e.printStackTrace();
             }
-            data.putInt("Type",NUM_COURSE);
+            Log.d("rrrrrrr",data.toString());
+            data.putInt("Type",FLAG_COURSE);
             msg.setData(data);
             handler.sendMessage(msg);
         }
@@ -459,3 +514,22 @@ public class TeachLogin extends Activity {
 
 
 }
+
+/*
+* Jsoup的一些应用
+                Elements tables=doc.getElementsByTag("table");
+                Elements trs=null;
+                Log.d("EEEEEEE",tables.toString());
+                for(Element table:tables){
+                    trs=table.children();
+                }
+                writeData(DIRECTORY_ROOT+File.separator+DIRECTORY+File.separator+"trs.txt",trs.toString());
+
+                String temp="";
+                for(Element tr:trs){
+                    Log.d("EEEEEEEWWWWW",tr.toString());
+                    temp+=tr.toString();
+                }
+                writeData(DIRECTORY_ROOT+File.separator+DIRECTORY+File.separator+"tr.html",temp);
+                str=temp;
+*/
