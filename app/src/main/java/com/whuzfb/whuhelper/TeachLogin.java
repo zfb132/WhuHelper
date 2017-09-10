@@ -2,6 +2,8 @@ package com.whuzfb.whuhelper;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -88,7 +90,7 @@ public class TeachLogin extends Activity {
 
     private static String directory_root="/sdcard";
 
-    private static final String DIRECTORY="WhuHelper";
+    private static final String DIRECTORY="WhuHelper/course";
 
 
 
@@ -102,7 +104,7 @@ public class TeachLogin extends Activity {
         initView();
         //持久化并更新cookie与token
         saveUpdateCookie();
-        //为应用在SD卡创建目录/sdcard/WhuHelper
+        //为应用在SD卡创建目录/sdcard/WhuHelper/course
         createdirs();
         setListener();
     }
@@ -340,8 +342,8 @@ public class TeachLogin extends Activity {
         return false;
     }
 
-    //解析课程表的网页获取各科目详细信息
-    //TODO 将infoCourse的内容存储到数据库SQLite以备使用
+    // 解析课程表的网页获取各科目详细信息
+    // 将infoCourse的内容存储到数据库SQLite以备使用
     public String getCourseInfo(String str){
         Document doc= Jsoup.parse(str);
         Elements trs=doc.getElementsByTag("tr");
@@ -390,9 +392,51 @@ public class TeachLogin extends Activity {
                 t++;
             }
         }
+
+        // 当获取到数据后再写入数据库
+        if(str!=""){
+            //将信息写入数据库
+            DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+            SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
+            //得到一个可写的数据库
+            SQLiteDatabase db =dbHelper.getWritableDatabase();
+            //由于第一行是表头而不是课程信息，故从1开始
+            for(int n=1;n<num_course;n++){
+                //db.execSQL("insert into course(id,courseID,courseName,courseType,studyType,college,teacher,profession,credit,timeLast,time,note,state) values ("+(n-1)+","+infoCourse[n][0]+","+infoCourse[n][1]+","+infoCourse[n][2]+","+infoCourse[n][3]+","+infoCourse[n][4]+","+infoCourse[n][5]+","+infoCourse[n][6]+","+infoCourse[n][7]+","+infoCourse[n][8]+","+infoCourse[n][9]+","+infoCourse[n][10]+","+infoCourse[n][11]+");");
+                db.execSQL("insert into course(id,courseID,courseName,courseType,studyType,college,teacher,profession,credit,timeLast,time,note,state) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",new Object[]{n-1,infoCourse[n][0],infoCourse[n][1],infoCourse[n][2],infoCourse[n][3],infoCourse[n][4],infoCourse[n][5],infoCourse[n][6],infoCourse[n][7],infoCourse[n][8],infoCourse[n][9],infoCourse[n][10],infoCourse[n][11]});
+                // 其实有更方便的方法如下
+                // db.insert()
+                //Log.d("----------","zhengzai写入数据库");
+            }
+            db.close();
+            Log.d("----------","写入数据库");
+        }
+
+        //返回课程相关数据显示在TextView
         return str;
     }
 
+    // 读取数据库内容
+    public String getSQLData(){
+        String temp="";
+        DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+        SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        //Cursor cursor = db.rawQuery("select age,sex,class from student where name=?",
+        // new String[]{""});
+        // StudentInfo info = new StudentInfo();
+        // info.setAge(cursor.getInt(0));
+        // info.setSex(cursor.getString(1));
+        // info.setWhichclass(cursor.getString(2));
+        Cursor cursor = db.rawQuery("select * from course",null);
+        Log.d("+++++++",""+cursor.getCount());
+        while(cursor.moveToNext()){
+            temp += cursor.getString(2)+"\n";
+        }
+        cursor.close();
+        db.close();
+        return temp;
+    }
 
     /*
     ***以下是网络相关操作
@@ -524,7 +568,6 @@ public class TeachLogin extends Activity {
                     trs=table.children();
                 }
                 writeData(DIRECTORY_ROOT+File.separator+DIRECTORY+File.separator+"trs.txt",trs.toString());
-
                 String temp="";
                 for(Element tr:trs){
                     Log.d("EEEEEEEWWWWW",tr.toString());
