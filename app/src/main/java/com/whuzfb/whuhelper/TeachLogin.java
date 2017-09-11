@@ -166,7 +166,7 @@ public class TeachLogin extends Activity {
                 img_checkcode.setImageBitmap(bm_checkCode);
                 break;
             case FLAG_COURSE:
-                tv_result.setText("成功获取到课程表数据！\n\n"+text);
+                tv_result.setText("正在获取课程表数据！\n\n"+text);
         }
     }
 
@@ -395,30 +395,36 @@ public class TeachLogin extends Activity {
 
         // 当获取到数据后再写入数据库
         if(str!=""){
-            //将信息写入数据库
-            DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
-            SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
-            //得到一个可写的数据库
-            SQLiteDatabase db =dbHelper.getWritableDatabase();
-            //由于第一行是表头而不是课程信息，故从1开始
-            for(int n=1;n<num_course;n++){
-                //db.execSQL("insert into course(id,courseID,courseName,courseType,studyType,college,teacher,profession,credit,timeLast,time,note,state) values ("+(n-1)+","+infoCourse[n][0]+","+infoCourse[n][1]+","+infoCourse[n][2]+","+infoCourse[n][3]+","+infoCourse[n][4]+","+infoCourse[n][5]+","+infoCourse[n][6]+","+infoCourse[n][7]+","+infoCourse[n][8]+","+infoCourse[n][9]+","+infoCourse[n][10]+","+infoCourse[n][11]+");");
-                db.execSQL("insert into course(id,courseID,courseName,courseType,studyType,college,teacher,profession,credit,timeLast,time,note,state) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",new Object[]{n-1,infoCourse[n][0],infoCourse[n][1],infoCourse[n][2],infoCourse[n][3],infoCourse[n][4],infoCourse[n][5],infoCourse[n][6],infoCourse[n][7],infoCourse[n][8],infoCourse[n][9],infoCourse[n][10],infoCourse[n][11]});
-                // 其实有更方便的方法如下
-                // db.insert()
-                //Log.d("----------","zhengzai写入数据库");
+            if(getSQLNum()<num_course){
+                //将信息写入数据库
+                DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+                SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
+                //得到一个可写的数据库
+                SQLiteDatabase db =dbHelper.getWritableDatabase();
+                //由于第一行是表头而不是课程信息，故从1开始
+                for(int n=1;n<num_course;n++){
+                    //db.execSQL("insert into course(id,courseID,courseName,courseType,studyType,college,teacher,profession,credit,timeLast,time,note,state) values ("+(n-1)+","+infoCourse[n][0]+","+infoCourse[n][1]+","+infoCourse[n][2]+","+infoCourse[n][3]+","+infoCourse[n][4]+","+infoCourse[n][5]+","+infoCourse[n][6]+","+infoCourse[n][7]+","+infoCourse[n][8]+","+infoCourse[n][9]+","+infoCourse[n][10]+","+infoCourse[n][11]+");");
+                    db.execSQL("insert into course(id,courseID,courseName,courseType,studyType,college,teacher,profession,credit,timeLast,time,note,state) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",new Object[]{n-1,infoCourse[n][0],infoCourse[n][1],infoCourse[n][2],infoCourse[n][3],infoCourse[n][4],infoCourse[n][5],infoCourse[n][6],infoCourse[n][7],infoCourse[n][8],infoCourse[n][9],infoCourse[n][10],infoCourse[n][11]});
+                    // 其实有更方便的方法如下
+                    // db.insert()
+                    //Log.d("----------","zhengzai写入数据库");
+                }
+                db.close();
+                Log.d("----------","写入数据库");
+            }else{
+                showError("数据库内容未更新，因为课程已保存");
             }
-            db.close();
-            Log.d("----------","写入数据库");
+        }else{
+            showError("未获取到课程信息");
         }
 
         //返回课程相关数据显示在TextView
         return str;
     }
 
-    // 读取数据库内容
-    public String getSQLData(){
-        String temp="";
+    // 读取数据库内容长度
+    public int getSQLNum(){
+        int num=0;
         DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
         SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -429,13 +435,14 @@ public class TeachLogin extends Activity {
         // info.setSex(cursor.getString(1));
         // info.setWhichclass(cursor.getString(2));
         Cursor cursor = db.rawQuery("select * from course",null);
-        Log.d("+++++++",""+cursor.getCount());
-        while(cursor.moveToNext()){
-            temp += cursor.getString(2)+"\n";
-        }
+        num=cursor.getCount();
+        Log.d("+++++++",""+num);
+        //while(cursor.moveToNext()){
+        //    temp += cursor.getString(2)+"\n";
+        //}
         cursor.close();
         db.close();
-        return temp;
+        return num;
     }
 
     /*
@@ -524,8 +531,6 @@ public class TeachLogin extends Activity {
             handler.sendMessage(msg);
         }
     };
-
-
 
 
     Runnable rb_getCourse = new Runnable(){

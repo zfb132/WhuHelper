@@ -21,21 +21,21 @@ public class SQLHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String sql =
                 "create table if not exists course(" +
-                        "id int(8) null,"+
-                        "courseID varchar(15) not null,"+
-                        "courseName varchar(50) not null,"+
-                        "courseType varchar(10) not null,"+
-                        "studyType varchar(10) null default '普通',"+
-                        "college varchar(20) null default '无',"+
-                        "teacher varchar(10) null default '未知',"+
-                        "profession varchar(30) null default '未知',"+
-                        "credit varchar(10) not null,"+
-                        "timeLast varchar(5) null default '0',"+
-                        "time varchar(100) null default '未知',"+
-                        "note varchar(150) null default '无',"+
-                        "state varchar(10) null default '未结算',"+
-                        "primary key(id)"+
-                        ");";
+                "id int(8) null,"+
+                "courseID varchar(15) not null,"+
+                "courseName varchar(50) not null,"+
+                "courseType varchar(10) not null,"+
+                "studyType varchar(10) null default '普通',"+
+                "college varchar(20) null default '无',"+
+                "teacher varchar(10) null default '未知',"+
+                "profession varchar(30) null default '未知',"+
+                "credit varchar(10) not null,"+
+                "timeLast varchar(5) null default '0',"+
+                "time varchar(100) null default '未知',"+
+                "note varchar(150) null default '无',"+
+                "state varchar(10) null default '未结算',"+
+                "primary key(id)"+
+                ");";
         //输出创建数据库的日志信息
         Log.i(TAG, "创建数据库表------------->");
         //execSQL函数用于执行SQL语句
