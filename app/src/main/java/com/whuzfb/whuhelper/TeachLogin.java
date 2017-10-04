@@ -59,7 +59,7 @@ public class TeachLogin extends Activity {
     private Spinner spinner_studyweb;
     private TextView tv_result;
     private Button btn_login;
-    private Button btn_changecode;
+    private Button btn_score;
     private Button btn_course;
     private ImageView img_checkcode;
     private Bitmap bm_checkCode;
@@ -69,7 +69,6 @@ public class TeachLogin extends Activity {
     private Map<String, String> cookies=new HashMap<>();
     private Map<String, String> headers=new HashMap<>();
     private String token="";
-    private String timestamp="";
 
     //登录URL
     private static final String URL_HOST="http://210.42.121.241/";
@@ -84,9 +83,12 @@ public class TeachLogin extends Activity {
     private static final int FLAG_CHECKCODE=1;
     private static final int FLAG_LOGIN=2;
     private static final int FLAG_COURSE=3;
-    private static final int NUM_INFOKIND=12;
+    private static final int FLAG_SCORE=4;
+    private static final int NUM_COLOFCOURSE=12;
+    private static final int NUM_COLOFSCORE=10;
     //此处num_course是当前学年课程数+1（因为有一个表头）
     private static int num_course=1;
+    private static int num_score=1;
 
     private static String directory_root="/sdcard";
 
@@ -114,20 +116,23 @@ public class TeachLogin extends Activity {
         btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(rb_login).start();
+                new Thread(runLogin()).start();
             }
         });
-        btn_changecode.setOnClickListener(new View.OnClickListener() {
+        img_checkcode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {new Thread(runGetCheckCode()).start();
+            }
+        });
+        btn_score.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btn_changecode.setText("看不清");
-                new Thread(rb_getCheckCode).start();
+                new Thread(runGetScore()).start();
             }
         });
         btn_course.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                new Thread(rb_getCourse).start();
+            public void onClick(View v) {new Thread(runGetCourse()).start();
             }
         });
     }
@@ -147,6 +152,10 @@ public class TeachLogin extends Activity {
                 writeData(directory_root+File.separator+DIRECTORY+File.separator+"course.html",str);
                 str=getCourseInfo(str);
             }
+            if(typeName==FLAG_SCORE){
+                writeData(directory_root+File.separator+DIRECTORY+File.separator+"score.html",str);
+                str=getScoreInfo(str);
+            }
             changeTextDisplay(typeName,str);
         }
     };
@@ -158,8 +167,12 @@ public class TeachLogin extends Activity {
             case FLAG_LOGIN:
                 if(text.contains("码错误"))
                     tv_result.setText("用户名/密码/验证码错误！！！");
-                else
+                else{
                     tv_result.setText(cookie+"\n"+token+"\n"+text);
+                    // 成功登陆保存cookie
+                    //saveUpdateCookie();
+                }
+
                 break;
             case FLAG_CHECKCODE:
                 tv_result.setText(cookie);
@@ -167,6 +180,8 @@ public class TeachLogin extends Activity {
                 break;
             case FLAG_COURSE:
                 tv_result.setText("正在获取课程表数据！\n\n"+text);
+            case FLAG_SCORE:
+                tv_result.setText("正在获取成绩！\n\n"+text);
         }
     }
 
@@ -184,22 +199,16 @@ public class TeachLogin extends Activity {
     public Map<String,String> setScoreParams(){
         //获取，cooking和表单属性，下面map存放post时的数据
         Map<String, String> post_params=new HashMap<>();
-        post_params.put("state","");
+        // 0 全部学年
+        post_params.put("year","0");
+        // "" 上下学期
         post_params.put("term", "");
+        // "" 所有类型
         post_params.put("learnType", "");
-        post_params.put("scoreFlag", "");
-        post_params.put("t", timestamp);
+        // 0 全部；1 及格；2 不及格；3 未出成绩；4 已出成绩
+        post_params.put("scoreFlag", "0");
         post_params.put("csrftoken",token);
-        /*
-        try {
-            post_params.put("term", URLEncoder.encode("下", "gb2312"));
-            Log.d("TAG",URLEncoder.encode("下", "gb2312"));
-            Log.d("TAG",URLEncoder.encode("下", "gbk"));
-        } catch (UnsupportedEncodingException e) {
-            post_params.put("term", "下");
-            showError(e.toString());
-        }
-        */
+
         return post_params;
     }
 
@@ -240,7 +249,6 @@ public class TeachLogin extends Activity {
         et_user.setText(username);
         et_pwd.setText(password);
     }
-
     //初始化View
     private void initView(){
         et_check = (EditText) findViewById(R.id.et_check);
@@ -248,7 +256,7 @@ public class TeachLogin extends Activity {
         et_pwd=(EditText) findViewById(R.id.et_pwd);
         spinner_studyweb=(Spinner)findViewById(R.id.spinner_studyweb);
         btn_login = (Button) findViewById(R.id.btn_post);
-        btn_changecode = (Button) findViewById(R.id.btn_web);
+        btn_score = (Button) findViewById(R.id.btn_web);
         btn_course = (Button) findViewById(R.id.btn_course);
         tv_result = (TextView) findViewById(R.id.tv_result);
         img_checkcode = (ImageView) findViewById(R.id.img);
@@ -349,8 +357,8 @@ public class TeachLogin extends Activity {
         Elements trs=doc.getElementsByTag("tr");
         num_course=trs.size();
         Elements[] tr=new Elements[num_course];
-        String[][] infoCourse=new String[num_course][NUM_INFOKIND];
-        String[] columnNames=new String[NUM_INFOKIND];
+        String[][] infoCourse=new String[num_course][NUM_COLOFCOURSE];
+        String[] columnNames=new String[NUM_COLOFCOURSE];
 
         Log.d("EEEEEE",trs.toString());
         writeData(directory_root+File.separator+DIRECTORY+File.separator+"coursetrs.txt",trs.toString());
@@ -370,7 +378,7 @@ public class TeachLogin extends Activity {
                 //i=0，即第一行数据，是课程表的每一列的列名
                 if(i==0){
                     //由于列只有12行
-                    if(t<NUM_INFOKIND){
+                    if(t<NUM_COLOFCOURSE){
                         infoCourse[0][t]=td.text();
                         columnNames[t]=infoCourse[0][t];
                         t++;
@@ -395,10 +403,11 @@ public class TeachLogin extends Activity {
 
         // 当获取到数据后再写入数据库
         if(str!=""){
-            if(getSQLNum()<num_course){
+            // 因为获得的num_course包含表头
+            if(getSQLNumOfCourse()<(num_course-1)){
                 //将信息写入数据库
                 DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
-                SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
+                SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
                 //得到一个可写的数据库
                 SQLiteDatabase db =dbHelper.getWritableDatabase();
                 //由于第一行是表头而不是课程信息，故从1开始
@@ -422,11 +431,11 @@ public class TeachLogin extends Activity {
         return str;
     }
 
-    // 读取数据库内容长度
-    public int getSQLNum(){
+    // 读取course数据表内容长度
+    public int getSQLNumOfCourse(){
         int num=0;
         DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
-        SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
+        SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         //Cursor cursor = db.rawQuery("select age,sex,class from student where name=?",
         // new String[]{""});
@@ -434,7 +443,7 @@ public class TeachLogin extends Activity {
         // info.setAge(cursor.getInt(0));
         // info.setSex(cursor.getString(1));
         // info.setWhichclass(cursor.getString(2));
-        Cursor cursor = db.rawQuery("select * from course",null);
+        Cursor cursor = db.rawQuery("select id from course",null);
         num=cursor.getCount();
         Log.d("+++++++",""+num);
         //while(cursor.moveToNext()){
@@ -445,121 +454,229 @@ public class TeachLogin extends Activity {
         return num;
     }
 
+    // 读取course数据表内容长度
+    public int getSQLNumOfScore(){
+        int num=0;
+        DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+        SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        //Cursor cursor = db.rawQuery("select age,sex,class from student where name=?",
+        // new String[]{""});
+        // StudentInfo info = new StudentInfo();
+        // info.setAge(cursor.getInt(0));
+        // info.setSex(cursor.getString(1));
+        // info.setWhichclass(cursor.getString(2));
+        Cursor cursor = db.rawQuery("select id from score",null);
+        num=cursor.getCount();
+        Log.d("+++++++",""+num);
+        //while(cursor.moveToNext()){
+        //    temp += cursor.getString(2)+"\n";
+        //}
+        cursor.close();
+        db.close();
+        return num;
+    }
+
+    public String getScoreInfo(String str){
+        Document doc= Jsoup.parse(str);
+        Elements trs=doc.getElementsByTag("tr");
+
+        num_score=trs.size();
+        Elements[] tr=new Elements[num_score];
+        String[][] infoCourse=new String[num_score][NUM_COLOFSCORE];
+        String[] columnNames=new String[NUM_COLOFSCORE];
+
+        Log.d("EEEEEE",trs.toString());
+        writeData(directory_root+File.separator+DIRECTORY+File.separator+"scoretrs.txt",trs.toString());
+        str="";
+        int i=0,t;
+        for(Element tr_temp:trs){
+            tr[i++]=tr_temp.children();
+            //str+=tr.toString();
+            Log.d("EEEWWW",tr.toString());
+        }
+        for(i=0;i<num_score;i++){
+            t=0;
+            if(i>1){
+                str+="\n********下一门课********\n";
+            }
+            for(Element td:tr[i]){
+                // 由于实际有11列数据，最后一列不需要
+                if(t==10)
+                    break;
+                //i=0，即第一行数据，是课程表的每一列的列名
+                if(i==0){
+                    //由于列只有12行
+                    if(t<NUM_COLOFSCORE){
+                        infoCourse[0][t]=td.text();
+                        columnNames[t]=infoCourse[0][t];
+                        t++;
+                        continue;
+                    }else
+                        break;
+                }
+                infoCourse[i][t]=td.text()+"\n";
+                str=str+columnNames[t]+" : "+infoCourse[i][t];
+                t++;
+            }
+        }
+
+        // 当获取到数据后再写入数据库
+        if(str!=""){
+            // 因为获得的num_score包含表头
+            if((num_score-1)>getSQLNumOfScore()){
+                //将信息写入数据库
+                DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+                SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
+                //得到一个可写的数据库
+                SQLiteDatabase db =dbHelper.getWritableDatabase();
+                //由于第一行是表头而不是课程信息，故从1开始
+                for(int n=1;n<num_score;n++){
+                    db.execSQL("insert into score(id,courseID,courseName,courseType,credit,teacher,college,studyType,year,term,score) values(?,?,?,?,?,?,?,?,?,?,?)",new Object[]{n-1,infoCourse[n][0],infoCourse[n][1],infoCourse[n][2],infoCourse[n][3],infoCourse[n][4],infoCourse[n][5],infoCourse[n][6],infoCourse[n][7],infoCourse[n][8],infoCourse[n][9]});
+                }
+                db.close();
+                Log.d("----------","写入数据库");
+            }else{
+                showError("数据库内容未更新，因为成绩已保存");
+            }
+        }else{
+            showError("未获取到成绩信息");
+        }
+
+        //返回成绩相关数据显示在TextView
+        return str;
+    }
+
     /*
     ***以下是网络相关操作
      */
-    Runnable rb_getCheckCode = new Runnable(){
-        @Override
-        public void run() {
-            //网络相关操作均使用Thread
-            Connection.Response response=null;
-            Message msg = new Message();
-            Bundle data = new Bundle();
-            try {
-                Connection c=Jsoup.connect(URL_CHECKCODE).timeout(10000).ignoreContentType(true);
-                response=c.execute();
-                cookies=response.cookies();
-                cookie=response.cookies().get("JSESSIONID");
-                bm_checkCode = BitmapFactory.decodeByteArray(response.bodyAsBytes(), 0, response.bodyAsBytes().length);
-            } catch (IOException e) {
-                e.printStackTrace();
+    public Runnable runGetCheckCode(){
+        Runnable rb_getCheckCode = new Runnable(){
+            @Override
+            public void run() {
+                //网络相关操作均使用Thread
+                Connection.Response response=null;
+                Message msg = new Message();
+                Bundle data = new Bundle();
+                try {
+                    Connection c=Jsoup.connect(URL_CHECKCODE).timeout(10000).ignoreContentType(true);
+                    response=c.execute();
+                    cookies=response.cookies();
+                    cookie=response.cookies().get("JSESSIONID");
+                    bm_checkCode = BitmapFactory.decodeByteArray(response.bodyAsBytes(), 0, response.bodyAsBytes().length);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                data.putString("value","");
+                data.putInt("Type",FLAG_CHECKCODE);
+                msg.setData(data);
+                handler.sendMessage(msg);
             }
-            data.putString("value","");
-            data.putInt("Type",FLAG_CHECKCODE);
-            msg.setData(data);
-            handler.sendMessage(msg);
-        }
-    };
+        };
+        return rb_getCheckCode;
+    }
 
-    Runnable rb_login = new Runnable(){
-        @Override
-        public void run() {
-            //网络相关操作均使用Thread
-            Connection.Response res=null;
-            Message msg = new Message();
-            Bundle data = new Bundle();
-            try {
-                Connection con=Jsoup.connect(URL_LOGIN);
-                con.header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
-                //设置cookie和post上面的map数据
-                res=con.ignoreContentType(true).method(Connection.Method.POST).data(setLoginParams()).cookies(cookies).execute();
-                data.putString("value",res.body());
+    public Runnable runLogin(){
+        Runnable rb_login = new Runnable(){
+            @Override
+            public void run() {
+                //网络相关操作均使用Thread
+                Connection.Response res=null;
+                Message msg = new Message();
+                Bundle data = new Bundle();
+                try {
+                    Connection con=Jsoup.connect(URL_LOGIN);
+                    con.header("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+                    //设置cookie和post上面的map数据
+                    res=con.ignoreContentType(true).method(Connection.Method.POST).data(setLoginParams()).cookies(cookies).execute();
+                    data.putString("value",res.body());
 
-                //正则表达式匹配出csrftoken
-                token=findStringInText(res.body(),REGEX_TOKEN)[0];
-                Log.d("TTT",token);
-            } catch (IOException e) {
-                data.putString("value","未获取到数据");
-                e.printStackTrace();
+                    //正则表达式匹配出csrftoken
+                    token=findStringInText(res.body(),REGEX_TOKEN)[0];
+                    Log.d("TTT",token);
+                } catch (IOException e) {
+                    data.putString("value","未获取到数据");
+                    e.printStackTrace();
+                }
+                data.putInt("Type",FLAG_LOGIN);
+                msg.setData(data);
+                handler.sendMessage(msg);
             }
-            data.putInt("Type",FLAG_LOGIN);
-            msg.setData(data);
-            handler.sendMessage(msg);
-        }
-    };
+        };
+        return rb_login;
+    }
 
-    Runnable rb_getScore = new Runnable(){
-        @Override
-        public void run() {
+    public Runnable runGetScore(){
+        Runnable rb_getScore = new Runnable(){
+            @Override
+            public void run() {
 
+            /*
+            //由于Jsoup在url包含中文参数时编码默认UTF-8，因此无法传递中文参数
             Calendar cd = Calendar.getInstance();
             SimpleDateFormat sdf = new SimpleDateFormat("EEE%20MMM%20dd%20yyyy%20HH:mm:ss%20'GMT'+0800%20", Locale.US);
             sdf.setTimeZone(TimeZone.getTimeZone("GMT+8:00")); // 设置时区为GMT
             timestamp= sdf.format(cd.getTime())+"(%D6%D0%B9%FA%B1%EA%D7%BC%CA%B1%BC%E4)";
+            */
 
-            //网络相关操作均使用Thread
-            Connection.Response res=null;
-            Message msg = new Message();
-            Bundle data = new Bundle();
-            try {
-                Connection con=Jsoup.connect(URL_SCORE);
-                //con.header();
-                headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
-                headers.put("Content-Type","text/html;charset=gb2312");
-                headers.put("Host","210.42.121.241");
-                headers.put("Referer","http://210.42.121.241/stu/stu_score_parent.jsp");
-                con.headers(headers);
-                //设置cookie和post上面的map数据
-                res=con.method(Connection.Method.GET).data(setScoreParams()).cookies(cookies).execute();
-                data.putString("value",res.body());
-            } catch (IOException e) {
-                data.putString("value","未获取到数据");
-                e.printStackTrace();
+                //网络相关操作均使用Thread
+                Connection.Response res=null;
+                Message msg = new Message();
+                Bundle data = new Bundle();
+                try {
+                    Connection con=Jsoup.connect(URL_SCORE);
+                    //con.header();
+                    headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+                    headers.put("Content-Type","text/html;charset=gb2312");
+                    headers.put("Host","210.42.121.241");
+                    headers.put("Referer","http://210.42.121.241/stu/stu_score_parent.jsp");
+                    con.headers(headers);
+                    //设置cookie和post上面的map数据
+                    res=con.method(Connection.Method.GET).data(setScoreParams()).cookies(cookies).execute();
+                    data.putString("value",res.body());
+                } catch (IOException e) {
+                    data.putString("value","未获取到数据");
+                    e.printStackTrace();
+                }
+                data.putInt("Type",FLAG_SCORE);
+                msg.setData(data);
+                handler.sendMessage(msg);
             }
-            data.putInt("Type",FLAG_COURSE);
-            msg.setData(data);
-            handler.sendMessage(msg);
-        }
-    };
+        };
+        return rb_getScore;
+    }
 
-
-    Runnable rb_getCourse = new Runnable(){
-        @Override
-        public void run() {
-            //网络相关操作均使用Thread
-            Connection.Response res=null;
-            Message msg = new Message();
-            Bundle data = new Bundle();
-            try {
-                Connection con=Jsoup.connect(URL_COURSE);
-                //con.header();
-                headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
-                headers.put("Content-Type","text/html;charset=gb2312");
-                headers.put("Host","210.42.121.241");
-                con.headers(headers);
-                //设置cookie和post上面的map数据
-                res=con.method(Connection.Method.GET).data(setCourseParams()).cookies(cookies).execute();
-                data.putString("value",res.body());
-            } catch (IOException e) {
-                data.putString("value","未获取到数据");
-                e.printStackTrace();
+    public Runnable runGetCourse(){
+        Runnable rb_getCourse = new Runnable(){
+            @Override
+            public void run() {
+                //网络相关操作均使用Thread
+                Connection.Response res=null;
+                Message msg = new Message();
+                Bundle data = new Bundle();
+                try {
+                    Connection con=Jsoup.connect(URL_COURSE);
+                    //con.header();
+                    headers.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+                    headers.put("Content-Type","text/html;charset=gb2312");
+                    headers.put("Host","210.42.121.241");
+                    con.headers(headers);
+                    //设置cookie和post上面的map数据
+                    res=con.method(Connection.Method.GET).data(setCourseParams()).cookies(cookies).execute();
+                    data.putString("value",res.body());
+                } catch (IOException e) {
+                    data.putString("value","未获取到数据");
+                    e.printStackTrace();
+                }
+                Log.d("rrrrrrr",data.toString());
+                data.putInt("Type",FLAG_COURSE);
+                msg.setData(data);
+                handler.sendMessage(msg);
             }
-            Log.d("rrrrrrr",data.toString());
-            data.putInt("Type",FLAG_COURSE);
-            msg.setData(data);
-            handler.sendMessage(msg);
-        }
-    };
+        };
+        return rb_getCourse;
+    }
+
 
 
 }

@@ -14,7 +14,7 @@ import android.util.Log;
  **/
 public class DatabaseContext extends ContextWrapper {
     //数据库文件路径
-    public static final String DBPATH="/WhuHelper/course" ;
+    public static final String DBPATHCourse="/WhuHelper/course" ;
 
     /**
      * 构造函数
@@ -38,7 +38,7 @@ public class DatabaseContext extends ContextWrapper {
         else{//如果存在
             //获取sd卡路径
             String dbDir=android.os.Environment.getExternalStorageDirectory().toString();
-            dbDir += DBPATH;//数据库所在目录
+            dbDir += DBPATHCourse;//数据库所在目录
             String dbPath = dbDir+"/"+name;//数据库路径
             //判断目录是否存在，不存在则创建该目录
             File dirFile = new File(dbDir);

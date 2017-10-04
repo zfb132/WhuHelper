@@ -19,7 +19,7 @@ public class SQLHelper extends SQLiteOpenHelper {
     // 当第一次创建数据库的时候，调用该方法
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String sql =
+        String sqlA =
                 "create table if not exists course(" +
                 "id int(8) null,"+
                 "courseID varchar(15) not null,"+
@@ -37,9 +37,25 @@ public class SQLHelper extends SQLiteOpenHelper {
                 "primary key(id)"+
                 ");";
         //输出创建数据库的日志信息
-        Log.i(TAG, "创建数据库表------------->");
+        Log.i(TAG, "创建数据库表A存储课程表信息------------->");
+        String sqlB =
+                "create table if not exists score(" +
+                "id int(8) null,"+
+                "courseID varchar(15) not null,"+
+                "courseName varchar(50) not null,"+
+                "courseType varchar(10) not null,"+
+                "credit varchar(10) not null,"+
+                "teacher varchar(10) null default '未知',"+
+                "college varchar(20) null default '无',"+
+                "studyType varchar(10) null default '普通',"+
+                "year varchar(4) null default '2015',"+
+                "term varchar(4) null default '上',"+
+                "score varchar(10) null default '100',"+
+                "primary key(id)"+
+                ");";
         //execSQL函数用于执行SQL语句
-        db.execSQL(sql);
+        db.execSQL(sqlA);
+        db.execSQL(sqlB);
     }
 
     //当更新数据库的时候执行该方法

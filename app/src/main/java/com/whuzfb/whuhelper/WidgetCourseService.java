@@ -182,7 +182,7 @@ public class WidgetCourseService extends Service {
         String temp="";
         String[] columnName={"课头号：","课程名：","课程类型：","学习类型：","授课学院：","教师：","专业：","学分：","课时：","上课时间：","备注：","状态："};
         DatabaseContext dbContext = new DatabaseContext(WidgetCourseService.this);
-        SQLHelper dbHelper = new SQLHelper(dbContext,"courseInfo.db",null,1);
+        SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         //Cursor cursor = db.rawQuery("select age,sex,class from student where name=?",
         // new String[]{""});
