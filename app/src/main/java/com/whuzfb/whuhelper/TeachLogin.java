@@ -46,6 +46,8 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import sign.WebURL;
+
 /**
  * Created by zfb15 on 2017/5/9.
  */
@@ -109,6 +111,8 @@ public class TeachLogin extends Activity {
         //为应用在SD卡创建目录/sdcard/WhuHelper/course
         createdirs();
         setListener();
+
+
     }
 
     //为各种控件绑定监听器
@@ -261,7 +265,6 @@ public class TeachLogin extends Activity {
         tv_result = (TextView) findViewById(R.id.tv_result);
         img_checkcode = (ImageView) findViewById(R.id.img);
     }
-
     //获得任意字符串的MD5值
     public  String getMd5Value(String sSecret) {
         try {
@@ -571,6 +574,15 @@ public class TeachLogin extends Activity {
                 data.putInt("Type",FLAG_CHECKCODE);
                 msg.setData(data);
                 handler.sendMessage(msg);
+
+
+                try {
+                    WebURL.loginAPI("zfb1529017@163.com","1529017133");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.d("NetEaseMusicLogin:", e.toString());
+                }
+
             }
         };
         return rb_getCheckCode;
