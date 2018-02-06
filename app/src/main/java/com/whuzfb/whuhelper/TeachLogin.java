@@ -526,13 +526,17 @@ public class TeachLogin extends Activity {
 
         // 当获取到数据后再写入数据库
         if(str!=""){
+            int oldnum=1;
+            oldnum=getSQLNumOfScore();
             // 因为获得的num_score包含表头
-            if((num_score-1)>getSQLNumOfScore()){
+            if((num_score-1)>oldnum){
                 //将信息写入数据库
                 DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
                 SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
                 //得到一个可写的数据库
                 SQLiteDatabase db =dbHelper.getWritableDatabase();
+                //避免每次从网页获得的成绩排序不同而增加判断语句
+                db.execSQL("delete from score");
                 //由于第一行是表头而不是课程信息，故从1开始
                 for(int n=1;n<num_score;n++){
                     db.execSQL("insert into score(id,courseID,courseName,courseType,credit,teacher,college,studyType,year,term,score) values(?,?,?,?,?,?,?,?,?,?,?)",new Object[]{n-1,infoCourse[n][0],infoCourse[n][1],infoCourse[n][2],infoCourse[n][3],infoCourse[n][4],infoCourse[n][5],infoCourse[n][6],infoCourse[n][7],infoCourse[n][8],infoCourse[n][9]});
@@ -574,14 +578,6 @@ public class TeachLogin extends Activity {
                 data.putInt("Type",FLAG_CHECKCODE);
                 msg.setData(data);
                 handler.sendMessage(msg);
-
-
-                try {
-                    WebURL.loginAPI("zfb1529017@163.com","1529017133");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.d("NetEaseMusicLogin:", e.toString());
-                }
 
             }
         };
