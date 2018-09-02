@@ -23,21 +23,16 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".TeachLogin"
-            android:label="@string/activity_name_teach"/>
-        <activity
             android:name="sms.EditSms"
-            android:label="@string/activity_name_teach"/>
-        <activity
-            android:name="sign.AllSign"
-            android:label="@string/activity_name_teach"/>
+            android:label="@string/activity_name_editms"/>
 
         <!--
         在Android 4.4上，只有一个应用能接收到新增的SMS_DELIVER_ACTION intent，这个intent是当系统接收到新短信时用来发送广播的。哪个应用接收这个广播取决于用户在系统设置里选择了哪个应用作为默认短信应用。同样的，也只有默认的短信应用能在系统接收到新彩信的时候接收到Android 4.4新增加的WAP_PUSH_DELIVER_ACTION intent;其他只想读取新信息的应用可以接收SMS_RECEIVED_ACTION广播，这个广播也是系统接收到新短信时发送的。但是只有接收到SMS_DELIVER_ACTION的应用(用户指定的默认短信应用)可以写入由android.provider.Telephony类和子类定义的SMS Provider
