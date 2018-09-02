@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,7 +24,7 @@ import com.whuzfb.whuhelper.R;
  * Created by zfb15 on 2017/8/7.
  */
 
-public class EditSms extends Activity {
+public class EditSms extends AppCompatActivity {
     private Button btn_write=null;
     private Button btn_recover=null;
     private EditText edt_telenum=null;
