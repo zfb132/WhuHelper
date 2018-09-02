@@ -10,7 +10,7 @@ import android.util.Log;
  */
 
 public class SQLHelper extends SQLiteOpenHelper {
-    public static final String TAG="DATABASE";
+    public static final String TAG="WhuHelper: DATABASE";
     //必须要有构造函数
     public SQLHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);

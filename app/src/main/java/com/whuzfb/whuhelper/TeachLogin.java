@@ -253,6 +253,7 @@ public class TeachLogin extends Activity {
         et_user.setText(username);
         et_pwd.setText(password);
     }
+
     //初始化View
     private void initView(){
         et_check = (EditText) findViewById(R.id.et_check);
@@ -265,6 +266,7 @@ public class TeachLogin extends Activity {
         tv_result = (TextView) findViewById(R.id.tv_result);
         img_checkcode = (ImageView) findViewById(R.id.img);
     }
+
     //获得任意字符串的MD5值
     public  String getMd5Value(String sSecret) {
         try {
@@ -331,7 +333,7 @@ public class TeachLogin extends Activity {
         if (checkSDCard()) {
             directory_root=Environment.getExternalStorageDirectory().getPath();
             File path = new File(directory_root + File.separator + DIRECTORY);
-            Log.d("PPPPPP",path.toString());
+            Log.d("WhuHelper: 文件路径",path.toString());
             if (!path.exists()) {
                 if (!path.mkdirs()) {
                     showError("创建目录失败，请检查权限！");
@@ -363,14 +365,14 @@ public class TeachLogin extends Activity {
         String[][] infoCourse=new String[num_course][NUM_COLOFCOURSE];
         String[] columnNames=new String[NUM_COLOFCOURSE];
 
-        Log.d("EEEEEE",trs.toString());
+        Log.d("WhuHelper: 所有课程信息",trs.toString());
         writeData(directory_root+File.separator+DIRECTORY+File.separator+"coursetrs.txt",trs.toString());
         str="";
         int i=0,t;
         for(Element tr_temp:trs){
             tr[i++]=tr_temp.children();
             //str+=tr.toString();
-            Log.d("EEEWWW",tr.toString());
+            Log.d("WhuHelper: 某一门课",tr.toString());
         }
         for(i=0;i<num_course;i++){
             t=0;
@@ -399,7 +401,7 @@ public class TeachLogin extends Activity {
                     infoCourse[i][t]=td.text()+"\n";
                 }
                 str=str+columnNames[t]+" : "+infoCourse[i][t];
-                Log.d("WWWWWW",infoCourse[i][t]);
+                Log.d("WhuHelper: 课程信息",infoCourse[i][t]);
                 t++;
             }
         }
@@ -448,7 +450,7 @@ public class TeachLogin extends Activity {
         // info.setWhichclass(cursor.getString(2));
         Cursor cursor = db.rawQuery("select id from course",null);
         num=cursor.getCount();
-        Log.d("+++++++",""+num);
+        Log.d("WhuHelper: 课程数据个数",""+num);
         //while(cursor.moveToNext()){
         //    temp += cursor.getString(2)+"\n";
         //}
@@ -471,7 +473,7 @@ public class TeachLogin extends Activity {
         // info.setWhichclass(cursor.getString(2));
         Cursor cursor = db.rawQuery("select id from score",null);
         num=cursor.getCount();
-        Log.d("+++++++",""+num);
+        Log.d("WhuHelper: 成绩数据个数",""+num);
         //while(cursor.moveToNext()){
         //    temp += cursor.getString(2)+"\n";
         //}
@@ -489,14 +491,14 @@ public class TeachLogin extends Activity {
         String[][] infoCourse=new String[num_score][NUM_COLOFSCORE];
         String[] columnNames=new String[NUM_COLOFSCORE];
 
-        Log.d("EEEEEE",trs.toString());
+        Log.d("WhuHelper: 所有成绩信息",trs.toString());
         writeData(directory_root+File.separator+DIRECTORY+File.separator+"scoretrs.txt",trs.toString());
         str="";
         int i=0,t;
         for(Element tr_temp:trs){
             tr[i++]=tr_temp.children();
             //str+=tr.toString();
-            Log.d("EEEWWW",tr.toString());
+            Log.d("WhuHelper: 某一门课成绩",tr.toString());
         }
         for(i=0;i<num_score;i++){
             t=0;
@@ -542,7 +544,7 @@ public class TeachLogin extends Activity {
                     db.execSQL("insert into score(id,courseID,courseName,courseType,credit,teacher,college,studyType,year,term,score) values(?,?,?,?,?,?,?,?,?,?,?)",new Object[]{n-1,infoCourse[n][0],infoCourse[n][1],infoCourse[n][2],infoCourse[n][3],infoCourse[n][4],infoCourse[n][5],infoCourse[n][6],infoCourse[n][7],infoCourse[n][8],infoCourse[n][9]});
                 }
                 db.close();
-                Log.d("----------","写入数据库");
+                Log.d("WhuHelper: ","写入数据库");
             }else{
                 showError("数据库内容未更新，因为成绩已保存");
             }
@@ -601,7 +603,7 @@ public class TeachLogin extends Activity {
 
                     //正则表达式匹配出csrftoken
                     token=findStringInText(res.body(),REGEX_TOKEN)[0];
-                    Log.d("TTT",token);
+                    Log.d("WhuHelper: token",token);
                 } catch (IOException e) {
                     data.putString("value","未获取到数据");
                     e.printStackTrace();
@@ -618,15 +620,6 @@ public class TeachLogin extends Activity {
         Runnable rb_getScore = new Runnable(){
             @Override
             public void run() {
-
-            /*
-            //由于Jsoup在url包含中文参数时编码默认UTF-8，因此无法传递中文参数
-            Calendar cd = Calendar.getInstance();
-            SimpleDateFormat sdf = new SimpleDateFormat("EEE%20MMM%20dd%20yyyy%20HH:mm:ss%20'GMT'+0800%20", Locale.US);
-            sdf.setTimeZone(TimeZone.getTimeZone("GMT+8:00")); // 设置时区为GMT
-            timestamp= sdf.format(cd.getTime())+"(%D6%D0%B9%FA%B1%EA%D7%BC%CA%B1%BC%E4)";
-            */
-
                 //网络相关操作均使用Thread
                 Connection.Response res=null;
                 Message msg = new Message();
@@ -676,7 +669,7 @@ public class TeachLogin extends Activity {
                     data.putString("value","未获取到数据");
                     e.printStackTrace();
                 }
-                Log.d("rrrrrrr",data.toString());
+                Log.d("WhuHelper: 课程页面",data.toString());
                 data.putInt("Type",FLAG_COURSE);
                 msg.setData(data);
                 handler.sendMessage(msg);
@@ -684,9 +677,6 @@ public class TeachLogin extends Activity {
         };
         return rb_getCourse;
     }
-
-
-
 }
 
 /*
@@ -705,4 +695,11 @@ public class TeachLogin extends Activity {
                 }
                 writeData(DIRECTORY_ROOT+File.separator+DIRECTORY+File.separator+"tr.html",temp);
                 str=temp;
+*/
+/*
+//由于Jsoup在url包含中文参数时编码默认UTF-8，因此无法传递中文参数
+Calendar cd = Calendar.getInstance();
+SimpleDateFormat sdf = new SimpleDateFormat("EEE%20MMM%20dd%20yyyy%20HH:mm:ss%20'GMT'+0800%20", Locale.US);
+sdf.setTimeZone(TimeZone.getTimeZone("GMT+8:00")); // 设置时区为GMT
+timestamp= sdf.format(cd.getTime())+"(%D6%D0%B9%FA%B1%EA%D7%BC%CA%B1%BC%E4)";
 */

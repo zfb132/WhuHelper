@@ -37,7 +37,6 @@ public class WidgetCourseService extends Service {
         String m="请先登录保存信息";
         try {
             m = getSQLData();
-            //Log.d("+++++++++",m);
             m=m.replaceAll("null","无");
             weekday = m.split("\n\n\n");
         }catch (Exception e){
@@ -52,7 +51,7 @@ public class WidgetCourseService extends Service {
         long time=System.currentTimeMillis();
         Date date=new Date(time);
         SimpleDateFormat format=new SimpleDateFormat("E");
-        Log.d("tag", weekday.length+"");
+        Log.d("WHuHelper: 每周上课的天数", weekday.length+"");
         switch (format.format(date)){
             case "周六":
                 temp[t]="今天星期六，好好休息吧！\n点击查看明天课程";
@@ -191,7 +190,7 @@ public class WidgetCourseService extends Service {
         // info.setSex(cursor.getString(1));
         // info.setWhichclass(cursor.getString(2));
         Cursor cursor = db.rawQuery("select * from course",null);
-        Log.d("+++++++",""+cursor.getCount());
+        Log.d("WhuHelper: 获取到课程个数",""+cursor.getCount());
         while(cursor.moveToNext()){
             for(int i=1;i<=12;i++){
                 temp = temp + columnName[i-1] + cursor.getString(i);

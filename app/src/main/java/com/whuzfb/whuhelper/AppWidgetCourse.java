@@ -37,13 +37,13 @@ public class AppWidgetCourse extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-        Log.d("TAG","onDeleted方法调用了");
+        Log.d("WhuHelper: 桌面挂件提供者","onDeleted方法调用了");
     }
 
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        Log.d("TAG","onEnabled方法调用了");
+        Log.d("WhuHelper: 桌面挂件提供者","onEnabled方法调用了");
         //启动MyService
         //Intent intent = new Intent(context,MyService.class);
         //context.startService(intent);
@@ -52,7 +52,7 @@ public class AppWidgetCourse extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        Log.d("TAG","onDisabled方法调用了");
+        Log.d("WhuHelper: 桌面挂件提供者","onDisabled方法调用了");
         //停止MyService
         //Intent intent = new Intent(context,MyService.class);。
         //context.stopService(intent);

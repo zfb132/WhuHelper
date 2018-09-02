@@ -19,18 +19,26 @@ public class MainActivity extends Activity{
     private Button btn_seat=null;
     private Button btn_sms=null;
     private Button btn_allsign=null;
+    private Button btn_tools=null;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //初始化视图
+        initView();
+        setListener();
+    }
+
+    //初始化视图
+    private void initView(){
         btn_teach=(Button)findViewById(R.id.btn_teach);
         btn_seat=(Button)findViewById(R.id.btn_seat);
         btn_sms=(Button)findViewById(R.id.btn_sms);
         btn_allsign=(Button)findViewById(R.id.btn_allsign);
+        btn_tools=(Button)findViewById(R.id.btn_alltools);
+    }
 
-
-        //为按钮绑定单击事件监听器
+    //绑定监听器
+    private void setListener(){
         btn_teach.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -40,7 +48,6 @@ public class MainActivity extends Activity{
             }
         });
 
-        //为按钮绑定单击事件监听器
         btn_sms.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -50,7 +57,6 @@ public class MainActivity extends Activity{
             }
         });
 
-        //为按钮绑定单击事件监听器
         btn_allsign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
