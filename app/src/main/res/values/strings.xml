@@ -24,4 +24,6 @@
     <string name="btn_recover">恢复默认短信应用</string>
     <string name="activity_name_teach">教务管理系统</string>
     <string name="loading">载入中</string>
+    <string name="all_signin">一键签到</string>
+    <string name="tools">常用工具</string>
 </resources>

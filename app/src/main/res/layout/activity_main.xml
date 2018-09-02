@@ -32,8 +32,16 @@
         android:layout_marginTop="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btn_sms"
+        android:text="@string/all_signin"
         android:id="@+id/btn_allsign"
+        android:layout_gravity="center_horizontal"/>
+
+    <Button
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tools"
+        android:id="@+id/btn_alltools"
         android:layout_gravity="center_horizontal"/>
 
 </LinearLayout>
