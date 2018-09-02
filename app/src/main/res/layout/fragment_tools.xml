@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:id="@+id/cv_sms"
+        app:cardCornerRadius="60dp"
+        app:cardElevation="0dp"
+        app:cardMaxElevation="0dp"
+        android:layout_centerInParent="true">
+
+        <ImageView
+            android:src="@mipmap/lena"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"/>
+    </android.support.v7.widget.CardView>
+
+    <TextView
+        android:id="@+id/tv_tools_demo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="88dp"
+        android:text="点击添加短信"
+        android:textSize="20sp" />
+</RelativeLayout>
