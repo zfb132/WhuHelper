@@ -58,7 +58,6 @@ public class TeachLogin extends Activity {
     private EditText et_check;
     private EditText et_user;
     private EditText et_pwd;
-    private Spinner spinner_studyweb;
     private TextView tv_result;
     private Button btn_login;
     private Button btn_score;
@@ -259,7 +258,6 @@ public class TeachLogin extends Activity {
         et_check = (EditText) findViewById(R.id.et_check);
         et_user=(EditText) findViewById(R.id.et_user);
         et_pwd=(EditText) findViewById(R.id.et_pwd);
-        spinner_studyweb=(Spinner)findViewById(R.id.spinner_studyweb);
         btn_login = (Button) findViewById(R.id.btn_post);
         btn_score = (Button) findViewById(R.id.btn_web);
         btn_course = (Button) findViewById(R.id.btn_course);
