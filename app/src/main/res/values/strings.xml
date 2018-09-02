@@ -22,8 +22,24 @@
     <string name="edt_from_hint">输入号码</string>
     <string name="btn_write">写入</string>
     <string name="btn_recover">恢复默认短信应用</string>
-    <string name="activity_name_teach">教务管理系统</string>
+
+    <string name="menu_name_teach">教务管理</string>
+    <string name="menu_name_seat">座位预约</string>
+    <string name="menu_name_allsign">一键签到</string>
+    <string name="menu_name_tools">常用工具</string>
+    <string name="menu_name_about">关于软件</string>
+    <string name="menu_action_settings">设置</string>
+
+    <string name="activity_name_editms">添加短信</string>
     <string name="loading">载入中</string>
     <string name="all_signin">一键签到</string>
     <string name="tools">常用工具</string>
+
+    <string name="nav_header_title">武汉大学</string>
+    <string name="nav_header_subtitle">电信学院本科生</string>
+    <string name="nav_header_desc">导航标题</string>
+    <string name="navigation_drawer_open">打开侧边栏</string>
+    <string name="navigation_drawer_close">关闭侧边栏</string>
+
+    <string name="about">关于本软件: \n<b>https://github.com/zfb132/WhuHelper</b></string>
 </resources>
