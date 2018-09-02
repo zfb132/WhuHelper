@@ -1,6 +1,7 @@
 package com.whuzfb.whuhelper;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,14 +12,16 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,8 +35,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -41,18 +42,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import sign.WebURL;
-
 /**
  * Created by zfb15 on 2017/5/9.
  */
 
-public class TeachLogin extends Activity {
+public class TeachLogin extends Fragment {
 
     //控件声明
     private EditText et_check;
@@ -64,6 +58,9 @@ public class TeachLogin extends Activity {
     private Button btn_course;
     private ImageView img_checkcode;
     private Bitmap bm_checkCode;
+
+    private Context context=null;
+    private FragmentActivity fragmentActivity=null;
 
     //网站cookie等登录验证
     private String cookie="";
@@ -95,23 +92,32 @@ public class TeachLogin extends Activity {
 
     private static final String DIRECTORY="WhuHelper/course";
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // 获取上下文用于其他函数
+        context=getActivity();
+        fragmentActivity=getActivity();
+    }
 
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_teachlogin, container, false);
+    }
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_teachlogin);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         //不自动弹出软键盘
         //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         //初始化各View组件
-        initView();
+        initView(view);
         //持久化并更新cookie与token
         saveUpdateCookie();
         //为应用在SD卡创建目录/sdcard/WhuHelper/course
         createdirs();
         setListener();
-
-
     }
 
     //为各种控件绑定监听器
@@ -244,7 +250,7 @@ public class TeachLogin extends Activity {
 
     //更新缓存
     private void saveUpdateCookie(){
-        SharedPreferences setinfo=getPreferences(Activity.MODE_PRIVATE);
+        SharedPreferences setinfo=fragmentActivity.getPreferences(Activity.MODE_PRIVATE);
         String username=setinfo.getString("STUDYNUM","");
         String password=setinfo.getString("PASSWORD","");
         cookie=setinfo.getString("COOKIE","");
@@ -254,15 +260,15 @@ public class TeachLogin extends Activity {
     }
 
     //初始化View
-    private void initView(){
-        et_check = (EditText) findViewById(R.id.et_check);
-        et_user=(EditText) findViewById(R.id.et_user);
-        et_pwd=(EditText) findViewById(R.id.et_pwd);
-        btn_login = (Button) findViewById(R.id.btn_post);
-        btn_score = (Button) findViewById(R.id.btn_web);
-        btn_course = (Button) findViewById(R.id.btn_course);
-        tv_result = (TextView) findViewById(R.id.tv_result);
-        img_checkcode = (ImageView) findViewById(R.id.img);
+    private void initView(View v){
+        et_check = (EditText) v.findViewById(R.id.et_check);
+        et_user=(EditText) v.findViewById(R.id.et_user);
+        et_pwd=(EditText) v.findViewById(R.id.et_pwd);
+        btn_login = (Button) v.findViewById(R.id.btn_post);
+        btn_score = (Button) v.findViewById(R.id.btn_web);
+        btn_course = (Button) v.findViewById(R.id.btn_course);
+        tv_result = (TextView) v.findViewById(R.id.tv_result);
+        img_checkcode = (ImageView) v.findViewById(R.id.img);
     }
 
     //获得任意字符串的MD5值
@@ -289,9 +295,9 @@ public class TeachLogin extends Activity {
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         //获取Shared Preference对象
-        SharedPreferences setinfo=getPreferences(Activity.MODE_PRIVATE);
+        SharedPreferences setinfo=fragmentActivity.getPreferences(Activity.MODE_PRIVATE);
         //保存用户名和密码
         setinfo.edit()
                 .putString("STUDYNUM",et_user.getText().toString())
@@ -321,7 +327,7 @@ public class TeachLogin extends Activity {
 
     //Toast显示字符串
     public void showError(String str) {
-        Toast toast = Toast.makeText(this, str, Toast.LENGTH_LONG);
+        Toast toast = Toast.makeText(fragmentActivity, str, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.BOTTOM, 0, 200);
         toast.show();
     }
@@ -409,7 +415,7 @@ public class TeachLogin extends Activity {
             // 因为获得的num_course包含表头
             if(getSQLNumOfCourse()<(num_course-1)){
                 //将信息写入数据库
-                DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+                DatabaseContext dbContext = new DatabaseContext(context);
                 SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
                 //得到一个可写的数据库
                 SQLiteDatabase db =dbHelper.getWritableDatabase();
@@ -437,7 +443,7 @@ public class TeachLogin extends Activity {
     // 读取course数据表内容长度
     public int getSQLNumOfCourse(){
         int num=0;
-        DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+        DatabaseContext dbContext = new DatabaseContext(context);
         SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         //Cursor cursor = db.rawQuery("select age,sex,class from student where name=?",
@@ -460,7 +466,7 @@ public class TeachLogin extends Activity {
     // 读取course数据表内容长度
     public int getSQLNumOfScore(){
         int num=0;
-        DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+        DatabaseContext dbContext = new DatabaseContext(context);
         SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         //Cursor cursor = db.rawQuery("select age,sex,class from student where name=?",
@@ -531,7 +537,7 @@ public class TeachLogin extends Activity {
             // 因为获得的num_score包含表头
             if((num_score-1)>oldnum){
                 //将信息写入数据库
-                DatabaseContext dbContext = new DatabaseContext(TeachLogin.this);
+                DatabaseContext dbContext = new DatabaseContext(context);
                 SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
                 //得到一个可写的数据库
                 SQLiteDatabase db =dbHelper.getWritableDatabase();
