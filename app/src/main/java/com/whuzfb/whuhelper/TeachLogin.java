@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -24,6 +26,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bin.david.form.core.SmartTable;
+import com.bin.david.form.core.TableConfig;
+import com.bin.david.form.data.CellInfo;
+import com.bin.david.form.data.column.Column;
+import com.bin.david.form.data.column.ColumnInfo;
+import com.bin.david.form.data.format.bg.BaseCellBackgroundFormat;
+import com.bin.david.form.data.style.FontStyle;
+import com.bin.david.form.data.table.TableData;
+import com.bin.david.form.listener.OnColumnClickListener;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -37,8 +49,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,12 +70,13 @@ public class TeachLogin extends Fragment {
     private EditText et_check;
     private EditText et_user;
     private EditText et_pwd;
-    private TextView tv_result;
+    private TextView tv_time;
     private Button btn_login;
     private Button btn_score;
     private Button btn_course;
     private ImageView img_checkcode;
     private Bitmap bm_checkCode;
+    private SmartTable table=null;
 
     private Context context=null;
     private FragmentActivity fragmentActivity=null;
@@ -136,12 +155,55 @@ public class TeachLogin extends Fragment {
         btn_score.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(runGetScore()).start();
+                //new Thread(runGetScore()).start();
+                Column<Integer> column1 = new Column<>("ID", "id");
+                //设置列自动排序
+                //column1.setAutoCount(true);
+                Column<String> column2 = new Column<>("课程", "courseName");column2.setFixed(true);
+                Column<String> column3 = new Column<>("分数", "score");
+                Column<String> column4 = new Column<>("课程类型", "courseType");
+                Column<String> column5 = new Column<>("学分", "credit");
+                Column<String> column6 = new Column<>("老师", "teacher");
+                Column<String> column7 = new Column<>("学院", "college");
+                Column<String> column8 = new Column<>("学习类型", "studyType");
+                Column<String> column9 = new Column<>("年", "year");
+                Column<String> column10 = new Column<>("学期", "term");
+                Column<String> column11 = new Column<>("课程ID", "courseID");
+                List<ScoreInfo> scoreList=getSQLScoreData();
+                //表格数据 datas是需要填充的数据
+                TableData<ScoreInfo> tableData = new TableData<>("成绩单",scoreList,column1,column2,column3,column4,column5,column6,column7,column8,column9,column10,column11);
+                // 设置排序的列
+                tableData.setSortColumn(column1);
+                table.setZoom(true,3,0.2f);
+                initTable();
+                table.setTableData(tableData);
             }
         });
         btn_course.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {new Thread(runGetCourse()).start();
+            public void onClick(View v) {
+                //new Thread(runGetCourse()).start();
+                Column<Integer> column1 = new Column<>("ID", "id");
+                Column<String> column2 = new Column<>("课程", "courseName");column2.setFixed(true);
+                Column<String> column3 = new Column<>("课程类型", "courseType");
+                Column<String> column4 = new Column<>("学习类型", "studyType");
+                Column<String> column5 = new Column<>("学院", "college");
+                Column<String> column6 = new Column<>("老师", "teacher");
+                Column<String> column7 = new Column<>("专业", "profession");
+                Column<String> column8 = new Column<>("学分", "credit");
+                Column<String> column9 = new Column<>("学时", "timeLast");
+                Column<String> column10 = new Column<>("时间", "time");
+                Column<String> column11 = new Column<>("备注", "note");
+                Column<String> column12 = new Column<>("状态", "state");
+                Column<String> column13 = new Column<>("课程ID", "courseID");
+                List<CourseInfo> courseList=getSQLCourseData();
+                //表格数据 datas是需要填充的数据
+                TableData<CourseInfo> tableData = new TableData<>("课程信息",courseList,column1,column2,column3,column4,column5,column6,column7,column8,column9,column10,column11,column12,column13);
+                // 设置排序的列
+                tableData.setSortColumn(column1);
+                table.setZoom(true,3,0.2f);
+                initTable();
+                table.setTableData(tableData);
             }
         });
     }
@@ -159,11 +221,11 @@ public class TeachLogin extends Fragment {
 
             if(typeName==FLAG_COURSE){
                 writeData(directory_root+File.separator+DIRECTORY+File.separator+"course.html",str);
-                str=getCourseInfo(str);
+                saveCourseInfo(str);
             }
             if(typeName==FLAG_SCORE){
                 writeData(directory_root+File.separator+DIRECTORY+File.separator+"score.html",str);
-                str=getScoreInfo(str);
+                saveScoreInfo(str);
             }
             changeTextDisplay(typeName,str);
         }
@@ -175,22 +237,28 @@ public class TeachLogin extends Fragment {
         switch (num){
             case FLAG_LOGIN:
                 if(text.contains("码错误"))
-                    tv_result.setText("用户名/密码/验证码错误！！！");
+                    showTips("用户名/密码/验证码错误！！！");
                 else{
-                    tv_result.setText(cookie+"\n"+token+"\n"+text);
-                    // 成功登陆保存cookie
+                    showTips("登录成功,正在获取成绩和课程信息");
+                    //Log.d("TeachLogin：",cookie+"\n"+token+"\n"+text);
+                    // 成功登陆更新时间
+                    updateFormatTime();
                     //saveUpdateCookie();
+                    //自动获取成绩和课程表存入数据库
+                    new Thread(runGetScore()).start();
+                    new Thread(runGetCourse()).start();
                 }
 
                 break;
             case FLAG_CHECKCODE:
-                tv_result.setText(cookie);
+                //tv_result.setText(cookie);
                 img_checkcode.setImageBitmap(bm_checkCode);
                 break;
             case FLAG_COURSE:
-                tv_result.setText("正在获取课程表数据！\n\n"+text);
+                //tv_result.setText("正在获取课程表数据！\n\n"+text);
             case FLAG_SCORE:
-                tv_result.setText("正在获取成绩！\n\n"+text);
+                //tv_result.setText("正在获取成绩！\n\n"+text);
+                break;
         }
     }
 
@@ -267,8 +335,57 @@ public class TeachLogin extends Fragment {
         btn_login = (Button) v.findViewById(R.id.btn_post);
         btn_score = (Button) v.findViewById(R.id.btn_web);
         btn_course = (Button) v.findViewById(R.id.btn_course);
-        tv_result = (TextView) v.findViewById(R.id.tv_result);
+        //tv_result = (TextView) v.findViewById(R.id.tv_result);
+        tv_time=(TextView)v.findViewById(R.id.tv_time_lastupdate);
         img_checkcode = (ImageView) v.findViewById(R.id.img);
+        table=(SmartTable)v.findViewById(R.id.table);
+        SharedPreferences setinfo=fragmentActivity.getPreferences(Activity.MODE_PRIVATE);
+        String lastupdate=setinfo.getString("LASTUPDATE","0");
+        tv_time.setText(lastupdate);
+    }
+
+    // 初始化SmartTable配置
+    private void initTable(){
+        // 设置表头字体
+        TableConfig config=table.getConfig();
+        config.setTableTitleStyle(new FontStyle(getActivity(),23,getResources().getColor(R.color.colorTableTitle)).setAlign(Paint.Align.CENTER));
+        // 设置cell字体
+        config.setContentStyle(new FontStyle(getActivity(),20,getResources().getColor(R.color.colorTableContent)).setAlign(Paint.Align.CENTER));
+        // 设置单元格背景色
+        table.getConfig().setContentCellBackgroundFormat(new BaseCellBackgroundFormat<CellInfo>() {
+            @Override
+            public int getBackGroundColor(CellInfo cellInfo) {
+                if(cellInfo.row %2 ==0) {
+                    return ContextCompat.getColor(getActivity(), R.color.content_bg);
+                }
+                return TableConfig.INVALID_COLOR;
+            }
+        });
+        // 设置列标题字体
+        config.setColumnTitleStyle(new FontStyle(getActivity(),20,getResources().getColor(R.color.colorPrimary)).setAlign(Paint.Align.CENTER));
+        // 设置不显示左边和上边的序列
+        config.setShowXSequence(false);
+        config.setShowYSequence(false);
+        // 设置列点击事件
+        table.setOnColumnClickListener(new OnColumnClickListener() {
+            @Override
+            public void onClick(ColumnInfo columnInfo) {
+                table.setSortColumn(columnInfo.column, !columnInfo.column.isReverseSort());
+            }
+        });
+    }
+
+    // 显示当前时间字符串
+    public void updateFormatTime(){
+        Calendar cd = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT+8:00")); // 设置时区为GMT
+        String time=sdf.format(cd.getTime());
+        tv_time.setText(time);
+        // 持久化更新时间
+        SharedPreferences setinfo=fragmentActivity.getPreferences(Activity.MODE_PRIVATE);
+        //保存最近更新时间
+        setinfo.edit().putString("LASTUPDATE",time).commit();
     }
 
     //获得任意字符串的MD5值
@@ -318,15 +435,15 @@ public class TeachLogin extends Fragment {
             fileOutputStream.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            showError(e.toString());
+            showTips(e.toString());
         } catch (IOException e) {
             e.printStackTrace();
-            showError(e.toString());
+            showTips(e.toString());
         }
     }
 
     //Toast显示字符串
-    public void showError(String str) {
+    public void showTips(String str) {
         Toast toast = Toast.makeText(fragmentActivity, str, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.BOTTOM, 0, 200);
         toast.show();
@@ -340,12 +457,12 @@ public class TeachLogin extends Fragment {
             Log.d("WhuHelper: 文件路径",path.toString());
             if (!path.exists()) {
                 if (!path.mkdirs()) {
-                    showError("创建目录失败，请检查权限！");
+                    showTips("创建目录失败，请检查权限！");
                     return;
                 }
             }
         } else {
-            showError("SD卡未连接");
+            showTips("SD卡未连接");
             return;
         }
     }
@@ -361,7 +478,7 @@ public class TeachLogin extends Fragment {
 
     // 解析课程表的网页获取各科目详细信息
     // 将infoCourse的内容存储到数据库SQLite以备使用
-    public String getCourseInfo(String str){
+    public void saveCourseInfo(String str){
         Document doc= Jsoup.parse(str);
         Elements trs=doc.getElementsByTag("tr");
         num_course=trs.size();
@@ -419,6 +536,8 @@ public class TeachLogin extends Fragment {
                 SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
                 //得到一个可写的数据库
                 SQLiteDatabase db =dbHelper.getWritableDatabase();
+                //避免每次从网页获得的课程排序不同而增加判断语句
+                db.execSQL("delete from course");
                 //由于第一行是表头而不是课程信息，故从1开始
                 for(int n=1;n<num_course;n++){
                     //db.execSQL("insert into course(id,courseID,courseName,courseType,studyType,college,teacher,profession,credit,timeLast,time,note,state) values ("+(n-1)+","+infoCourse[n][0]+","+infoCourse[n][1]+","+infoCourse[n][2]+","+infoCourse[n][3]+","+infoCourse[n][4]+","+infoCourse[n][5]+","+infoCourse[n][6]+","+infoCourse[n][7]+","+infoCourse[n][8]+","+infoCourse[n][9]+","+infoCourse[n][10]+","+infoCourse[n][11]+");");
@@ -426,18 +545,16 @@ public class TeachLogin extends Fragment {
                     // 其实有更方便的方法如下
                     // db.insert()
                     //Log.d("----------","zhengzai写入数据库");
+                    showTips("已保存课程信息");
                 }
                 db.close();
                 Log.d("----------","写入数据库");
             }else{
-                showError("数据库内容未更新，因为课程已保存");
+                showTips("数据库内容未更新，因为课程已保存");
             }
         }else{
-            showError("未获取到课程信息");
+            showTips("未获取到课程信息");
         }
-
-        //返回课程相关数据显示在TextView
-        return str;
     }
 
     // 读取course数据表内容长度
@@ -486,7 +603,7 @@ public class TeachLogin extends Fragment {
         return num;
     }
 
-    public String getScoreInfo(String str){
+    public void saveScoreInfo(String str){
         Document doc= Jsoup.parse(str);
         Elements trs=doc.getElementsByTag("tr");
 
@@ -549,15 +666,47 @@ public class TeachLogin extends Fragment {
                 }
                 db.close();
                 Log.d("WhuHelper: ","写入数据库");
+                showTips("已保存成绩信息");
             }else{
-                showError("数据库内容未更新，因为成绩已保存");
+                showTips("数据库内容未更新，因为成绩已保存");
             }
         }else{
-            showError("未获取到成绩信息");
+            showTips("未获取到成绩信息");
         }
+    }
 
-        //返回成绩相关数据显示在TextView
-        return str;
+    // 读取课程数据表内容
+    public List<CourseInfo> getSQLCourseData(){
+        List<CourseInfo> list=new ArrayList<>();
+        DatabaseContext dbContext = new DatabaseContext(fragmentActivity);
+        SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select * from course",null);
+        Log.d("WhuHelper: 获取到课程个数",""+cursor.getCount());
+        while(cursor.moveToNext()){
+            CourseInfo info=new CourseInfo(cursor.getInt(0),cursor.getString(2),cursor.getString(3),cursor.getString(4),cursor.getString(5),cursor.getString(6),cursor.getString(7),cursor.getString(8),cursor.getString(9),cursor.getString(10),cursor.getString(11),cursor.getString(12),cursor.getString(1));
+            list.add(info);
+        }
+        cursor.close();
+        db.close();
+        return list;
+    }
+
+    // 读取成绩数据表内容
+    public List<ScoreInfo> getSQLScoreData(){
+        List<ScoreInfo> list=new ArrayList<>();
+        DatabaseContext dbContext = new DatabaseContext(fragmentActivity);
+        SQLHelper dbHelper = new SQLHelper(dbContext,"study.db",null,1);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select * from score",null);
+        Log.d("WhuHelper: 获取到成绩个数",""+cursor.getCount());
+        while(cursor.moveToNext()){
+            ScoreInfo info=new ScoreInfo(cursor.getInt(0),cursor.getString(2),cursor.getString(10),cursor.getString(3),cursor.getString(4),cursor.getString(5),cursor.getString(6),cursor.getString(7),cursor.getString(8),cursor.getString(9),cursor.getString(1));
+            list.add(info);
+        }
+        cursor.close();
+        db.close();
+        return list;
     }
 
     /*
