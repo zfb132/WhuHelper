@@ -23,6 +23,7 @@ import sign.AllSign;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private DrawerLayout drawer=null;
+    public static NavigationView navigationView=null;
     private TeachLogin teachLogin=null;
     private AllSign allSign=null;
     private ReserveSeat reserveSeat=null;
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         // 图片显示原本的颜色
         // navigationView.setItemIconTintList(null);

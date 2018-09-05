@@ -243,6 +243,7 @@ public class TeachLogin extends Fragment {
                     //Log.d("TeachLogin：",cookie+"\n"+token+"\n"+text);
                     // 成功登陆更新时间
                     updateFormatTime();
+                    updateNavHeader(text);
                     //saveUpdateCookie();
                     //自动获取成绩和课程表存入数据库
                     new Thread(runGetScore()).start();
@@ -339,9 +340,16 @@ public class TeachLogin extends Fragment {
         tv_time=(TextView)v.findViewById(R.id.tv_time_lastupdate);
         img_checkcode = (ImageView) v.findViewById(R.id.img);
         table=(SmartTable)v.findViewById(R.id.table);
+        // 关于更新时间设置
         SharedPreferences setinfo=fragmentActivity.getPreferences(Activity.MODE_PRIVATE);
         String lastupdate=setinfo.getString("LASTUPDATE","0");
         tv_time.setText(lastupdate);
+        // 关于侧边栏标题设置
+        View headerView=MainActivity.navigationView.getHeaderView(0);
+        TextView tv_header = (TextView)headerView.findViewById(R.id.tv_nav_header);
+        tv_header.setText(setinfo.getString("NAME","电信学院本科生"));
+        tv_header=(TextView)headerView.findViewById(R.id.tv_nav_header_sub);
+        tv_header.setText(setinfo.getString("COLLEGE","武汉大学"));
     }
 
     // 初始化SmartTable配置
@@ -386,6 +394,22 @@ public class TeachLogin extends Fragment {
         SharedPreferences setinfo=fragmentActivity.getPreferences(Activity.MODE_PRIVATE);
         //保存最近更新时间
         setinfo.edit().putString("LASTUPDATE",time).commit();
+    }
+
+    // 更新nav_header内容
+    public void updateNavHeader(String text){
+        Document doc= Jsoup.parse(text);
+        Elements span=doc.select("span[id=acade]");
+        Elements div=doc.select("div[id=nameLable]");
+        String college=span.text();
+        String name=div.text();
+        View headerView=MainActivity.navigationView.getHeaderView(0);
+        TextView tv_header = (TextView)headerView.findViewById(R.id.tv_nav_header);
+        tv_header.setText(name);
+        tv_header=(TextView)headerView.findViewById(R.id.tv_nav_header_sub);
+        tv_header.setText(college);
+        SharedPreferences setinfo=fragmentActivity.getPreferences(Activity.MODE_PRIVATE);
+        setinfo.edit().putString("COLLEGE",college).putString("NAME",name).commit();
     }
 
     //获得任意字符串的MD5值
