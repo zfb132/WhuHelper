@@ -31,6 +31,7 @@
     <string name="menu_action_settings">设置</string>
 
     <string name="activity_name_editms">添加短信</string>
+    <string name="activity_name_twocamera">双摄像头</string>
     <string name="loading">载入中</string>
     <string name="all_signin">一键签到</string>
     <string name="tools">常用工具</string>

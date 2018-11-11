@@ -3,6 +3,7 @@ package com.whuzfb.whuhelper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -10,9 +11,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import java.util.List;
 
 import sign.AllSign;
 
@@ -24,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private DrawerLayout drawer=null;
     public static NavigationView navigationView=null;
+    private Fragment defaultFrag = null;
     private TeachLogin teachLogin=null;
     private AllSign allSign=null;
     private ReserveSeat reserveSeat=null;
@@ -47,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
         // 图片显示原本的颜色
         // navigationView.setItemIconTintList(null);
+        // 设置默认选中项，只是在菜单上高亮
+        navigationView.getMenu().getItem(0).setChecked(true);
+        setDefaultFragment();
     }
 
 
@@ -86,7 +94,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String tag = "";
         if (id == R.id.nav_teach) {
             if(teachLogin==null){
-                teachLogin=new TeachLogin();
+                //teachLogin=new TeachLogin();
+                teachLogin=(TeachLogin) defaultFrag;
             }
             currFragment=teachLogin;
             // 可能之后会手动设置tag
@@ -145,22 +154,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //return true;
     }
 
+    // 显示默认Fragment
+    public void setDefaultFragment(){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        String tag=getString(R.string.menu_name_teach);
+        defaultFrag=new TeachLogin();
+        ft.add(R.id.fg,defaultFrag,tag);
+        ft.show(defaultFrag);
+        ft.commit();
+    }
+
     // 隐藏所有的Fragment
     public void hideFragments(FragmentTransaction ft){
-        if(teachLogin != null){
-            ft.hide(teachLogin);
-        }
-        if(allSign != null){
-            ft.hide(allSign);
-        }
-        if(reserveSeat != null){
-            ft.hide(reserveSeat);
-        }
-        if(commonTools != null){
-            ft.hide(commonTools);
-        }
-        if(aboutWhuHelper != null){
-            ft.hide(aboutWhuHelper);
+        FragmentManager fm = getSupportFragmentManager();
+        List<Fragment> fgs = fm.getFragments();
+        for(Fragment fragment:fgs){
+            ft.hide(fragment);
         }
     }
 }

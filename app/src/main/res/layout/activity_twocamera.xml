@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <SurfaceView
+        android:id="@+id/surfaceView_back"
+        android:layout_width="225dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp" />
+
+    <!-- 小米8为2160*1080（除刘海），
+    dpi为392，则比例为392/160=2.45
+    换算后宽为440.8dp，长为881.6dp -->
+    <SurfaceView
+        android:id="@+id/surfaceView_front"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_width="225dp"
+        android:layout_height="300dp" />
+</LinearLayout>
