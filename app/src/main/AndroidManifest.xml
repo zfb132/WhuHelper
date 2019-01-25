@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="sms.EditSms"
+            android:name="tools.sms.EditSms"
             android:label="@string/activity_name_editms"/>
         <activity
             android:name="tools.TwoCamera"
@@ -46,7 +46,7 @@
 
         <!-- BroadcastReceiver that listens for incoming SMS messages -->
         <!-- 这让你的应用可以直接接收到进来的短信 -->
-        <receiver android:name="sms.SmsReceiver"
+        <receiver android:name="tools.sms.SmsReceiver"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
@@ -55,7 +55,7 @@
 
         <!-- BroadcastReceiver that listens for incoming MMS messages -->
         <!-- 这让你的应用可以直接接收到进来的彩信 -->
-        <receiver android:name="sms.MmsReceiver"
+        <receiver android:name="tools.sms.MmsReceiver"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter>
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
@@ -65,7 +65,7 @@
 
         <!-- Activity that allows the user to send new SMS/MMS messages -->
         <!-- 这让你的应用可以接收到其他想发送信息的应用请求的intent -->
-        <activity android:name="sms.ComposeSmsActivity" >
+        <activity android:name="tools.sms.ComposeSmsActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.SENDTO" />
@@ -80,7 +80,7 @@
 
         <!-- Service that delivers messages from the phone "quick response" -->
         <!-- 这让用户在来电的时候用你的应用进行即时的短信息回复 -->
-        <service android:name="sms.HeadlessSmsSendService"
+        <service android:name="tools.sms.HeadlessSmsSendService"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
             android:exported="true" >
             <intent-filter>

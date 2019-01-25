@@ -1,4 +1,4 @@
-package sms;
+package tools.sms;
 
 import android.app.Service;
 import android.content.Intent;

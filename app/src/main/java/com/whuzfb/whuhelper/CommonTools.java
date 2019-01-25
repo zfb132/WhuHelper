@@ -11,7 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import sms.EditSms;
+import tools.sms.EditSms;
 import tools.TwoCamera;
 
 public class CommonTools extends Fragment {

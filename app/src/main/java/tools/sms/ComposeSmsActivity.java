@@ -1,4 +1,4 @@
-package sms;
+package tools.sms;
 
 import android.app.Activity;
 import android.os.Bundle;
