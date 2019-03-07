@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import tools.ExportShortCut;
 import tools.sms.EditSms;
 import tools.TwoCamera;
 
@@ -20,6 +21,7 @@ public class CommonTools extends Fragment {
 
     private CardView cv_sms=null;
     private CardView cv_twocamera=null;
+    private CardView cv_exportsc=null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,6 +51,7 @@ public class CommonTools extends Fragment {
     public void initView(View v){
         cv_sms=(CardView)v.findViewById(R.id.cv_sms);
         cv_twocamera=(CardView)v.findViewById(R.id.cv_twocamera);
+        cv_exportsc=(CardView)v.findViewById(R.id.cv_exportsc);
     }
 
     public void setListener(){
@@ -65,6 +68,14 @@ public class CommonTools extends Fragment {
             public void onClick(View v) {
                 Intent intent=new Intent();
                 intent.setClass(fragmentActivity, TwoCamera.class);
+                startActivity(intent);
+            }
+        });
+        cv_exportsc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent();
+                intent.setClass(fragmentActivity, ExportShortCut.class);
                 startActivity(intent);
             }
         });
