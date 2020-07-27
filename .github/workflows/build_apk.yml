@@ -70,9 +70,7 @@ jobs:
           name: WhuHelper-debug
       - shell: bash
         run: |
-          pwd
-          ls -al
-          mv WhuHelper-debug/app-debug.apk  WhuHelper-debug/app-debug-${{steps.prepare_release.outputs.tag_name}}.apk 
+          mv app-debug.apk  app-debug-${{steps.prepare_release.outputs.tag_name}}.apk 
       - name: Create Release
         id: create_release
         # 只有上一步获取到tag_name才继续
@@ -81,6 +79,8 @@ jobs:
         env:
           # GitHub 会自动创建 GITHUB_TOKEN 密码以在工作流程中使用
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 设置时区
+          # TZ: Asia/Shanghai
         with:
           tag_name: ${{steps.prepare_release.outputs.tag_name}}
           release_name: Release ${{steps.prepare_release.outputs.tag_name}} by zfb
@@ -96,6 +96,6 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
           # 参考链接https://docs.github.com/cn/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts
-          asset_path: WhuHelper-debug/app-debug-${{steps.prepare_release.outputs.tag_name}}.apk
+          asset_path: ./app-debug-${{steps.prepare_release.outputs.tag_name}}.apk
           asset_name: app-debug-${{steps.prepare_release.outputs.tag_name}}.apk
           asset_content_type: application/vnd.android.package-archive
