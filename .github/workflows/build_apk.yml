@@ -1,6 +1,6 @@
-name: 自动构建apk文件
+name: Auto build debug apk
 
-在pull和push主分支时触发构建
+# 在pull和push主分支时触发构建
 on:
   pull_request:
     branches:
