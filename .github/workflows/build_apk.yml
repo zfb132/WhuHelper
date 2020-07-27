@@ -14,14 +14,18 @@ on:
 
 
 jobs:
+  # job的名字：测试Android项目
   test:
     name: Run Unit Tests
+    # job的运行平台
     runs-on: ubuntu-18.04
-
+    # test任务的步骤
     steps:
+      # 使用别人写好的指定版本的actions脚本，名称是checkout
       - uses: actions/checkout@v2
       - name: set up JDK 1.8
         uses: actions/setup-java@v1
+        # 设置setup-java脚本的输入参数
         with:
           java-version: 1.8
       - name: Unit tests
@@ -39,10 +43,12 @@ jobs:
           java-version: 1.8
       - name: Build debug APK
         run: bash ./gradlew assembleDebug --stacktrace
+      # 利用upload-artifact实现build结果的保存（可以在Actions的控制台下载压缩文件）
       - name: Upload APK
         uses: actions/upload-artifact@v2
         with:
-          # 压缩文件的名称
+          # 设置压缩文件的名称，在控制台会得到WhuHelper-debug.zip文件的下载链接
+          # 下载后解压缩，里面直接可以看到app-debug.apk，没有其他东西
           name: WhuHelper-debug
           path: app/build/outputs/apk/debug/app-debug.apk
 
@@ -56,19 +62,24 @@ jobs:
     # git push origin –-tags
     if: contains(github.ref, 'tags/')
     steps:
+      # 自己编写的shell命令
+      # 学习如何设置单个任务的输出来被其他任务调用
       - name: Prepare Release
         id: prepare_release
         run: |
           TAG_NAME=`echo $GITHUB_REF | cut -d / -f3`
           echo ::set-output name=tag_name::$TAG_NAME
-          ls -al
+      # 参考链接https://docs.github.com/cn/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts
       - name: Download build result for job apk
-        # 只有上一步获取到tag_name才继续，下载apk任务里面的WhuHelper-debug文件
+        # 只有上一步获取到tag_name才继续，下载前面apk任务里面的WhuHelper-debug.zip文件
+        # 自动解压缩到当前文件夹，自动删除原压缩文件
+        # 多任务之间的数据交换
         if: steps.prepare_release.outputs.tag_name
         uses: actions/download-artifact@v2
         with:
           name: WhuHelper-debug
       - shell: bash
+        # 手动更改apk名字
         run: |
           mv app-debug.apk  app-debug-${{steps.prepare_release.outputs.tag_name}}.apk 
       - name: Create Release
@@ -86,6 +97,7 @@ jobs:
           release_name: Release ${{steps.prepare_release.outputs.tag_name}} by zfb
           draft: false
           prerelease: false
+      # 如果不执行下一步也会发布release，只是里面不包含apk文件，但是包含代码压缩包（与手动默认发布一致）
       - name: Upload Release Asset
         id: upload-release-asset 
         # 只有create_release成功得到输出才继续
@@ -95,7 +107,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          # 参考链接https://docs.github.com/cn/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts
           asset_path: ./app-debug-${{steps.prepare_release.outputs.tag_name}}.apk
           asset_name: app-debug-${{steps.prepare_release.outputs.tag_name}}.apk
           asset_content_type: application/vnd.android.package-archive
