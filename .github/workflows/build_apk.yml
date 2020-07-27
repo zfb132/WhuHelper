@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - 'master'
+    # 在push tag时触发
+    tags:
+      - '*'
 
 
 jobs:
