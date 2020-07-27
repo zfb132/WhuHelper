@@ -39,5 +39,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v2
         with:
-          name: WhuHelper-debug.zip
+          # 压缩文件的名称
+          name: WhuHelper-debug
           path: app/build/outputs/apk/debug/app-debug.apk
