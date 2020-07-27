@@ -70,8 +70,9 @@ jobs:
           name: WhuHelper-debug
       - shell: bash
         run: |
-          mv WhuHelper-debug/app-debug.apk  WhuHelper-debug/app-debug-${{steps.prepare_release.outputs.tag_name}}.apk 
+          pwd
           ls -al
+          mv WhuHelper-debug/app-debug.apk  WhuHelper-debug/app-debug-${{steps.prepare_release.outputs.tag_name}}.apk 
       - name: Create Release
         id: create_release
         # 只有上一步获取到tag_name才继续
