@@ -42,3 +42,56 @@ jobs:
           # 压缩文件的名称
           name: WhuHelper-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+  deploy:
+    name: Upload Release Asset
+    # 依赖上一个job
+    needs: apk
+    runs-on: ubuntu-latest
+    # 只在tag时执行，即在自己终端运行以下代码后触发
+    # git tag -a v0.1.0 -m "release 0.1.0 version"
+    # git push origin –-tags
+    if: contains(github.ref, 'tags/')
+    steps:
+      - name: Prepare Release
+        id: prepare_release
+        run: |
+          TAG_NAME=`echo $GITHUB_REF | cut -d / -f3`
+          echo ::set-output name=tag_name::$TAG_NAME
+          ls -al
+      - name: Download build result for job apk
+        # 只有上一步获取到tag_name才继续，下载apk任务里面的WhuHelper-debug文件
+        if: steps.prepare_release.outputs.tag_name
+        uses: actions/download-artifact@v2
+        with:
+          name: WhuHelper-debug
+      - shell: bash
+        run: |
+          mv WhuHelper-debug/app-debug.apk  WhuHelper-debug/app-debug-${{steps.prepare_release.outputs.tag_name}}.apk 
+          ls -al
+      - name: Create Release
+        id: create_release
+        # 只有上一步获取到tag_name才继续
+        if: steps.prepare_release.outputs.tag_name
+        uses: actions/create-release@v1
+        env:
+          # GitHub 会自动创建 GITHUB_TOKEN 密码以在工作流程中使用
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{steps.prepare_release.outputs.tag_name}}
+          release_name: Release ${{steps.prepare_release.outputs.tag_name}} by zfb
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        # 只有create_release成功得到输出才继续
+        if: steps.create_release.outputs.upload_url && steps.prepare_release.outputs.apk_path && steps.prepare_release.outputs.apk_name
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
+          # 参考链接https://docs.github.com/cn/actions/configuring-and-managing-workflows/persisting-workflow-data-using-artifacts
+          asset_path: WhuHelper-debug/app-debug-${{steps.prepare_release.outputs.tag_name}}.apk
+          asset_name: app-debug-${{steps.prepare_release.outputs.tag_name}}.apk
+          asset_content_type: application/vnd.android.package-archive
