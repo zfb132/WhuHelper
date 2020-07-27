@@ -1,5 +1,5 @@
 # WhuHelper  
-![Java](https://img.shields.io/badge/language-Java-orange.svg)  [![Travis](https://img.shields.io/travis/rust-lang/rust.svg)]() [![Crates.io](https://img.shields.io/crates/l/rustc-serialize.svg)]()  
+![Java](https://img.shields.io/badge/language-Java-orange.svg)  ![Auto build debug apk](https://github.com/zfb132/WhuHelper/workflows/Auto%20build%20debug%20apk/badge.svg) [![Crates.io](https://img.shields.io/crates/l/rustc-serialize.svg)]()  
 业余时间来完善，主要用来登录解析教务系统以及在线预约座位    
 ## 项目背景  
 ### 编写目的  
